@@ -45,7 +45,7 @@ export default function Home() {
     return () => clearInterval(timer)
   }, [resetKey])
 
-  return (
+  return (<>
     <section className="relative w-full overflow-hidden" style={{ height: '560px' }}>
 
       {/* Images — all mounted, opacity controls which is visible */}
@@ -191,5 +191,6 @@ export default function Home() {
     </section>
 
     <TrustStrip />
-  )
+  </>)
+
 }
