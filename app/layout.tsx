@@ -3,6 +3,8 @@ import { Inter, Playfair_Display } from "next/font/google";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import WhatsAppFloat from "@/components/layout/WhatsAppFloat";
+import PageLoader from "@/components/layout/PageLoader";
 import "./globals.css";
 
 const inter = Inter({
@@ -32,10 +34,12 @@ export default function RootLayout({
       className={`${inter.variable} ${playfair.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <PageLoader />
         <AnnouncementBar />
         <Header />
         <main className="min-h-screen">{children}</main>
         <Footer />
+        <WhatsAppFloat />
       </body>
     </html>
   );
