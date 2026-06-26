@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import TrustStrip from '@/components/home/TrustStrip'
+import FeaturedPackages from '@/components/home/FeaturedPackages'
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WA_NUMBER
 
@@ -191,6 +192,7 @@ export default function Home() {
     </section>
 
     <TrustStrip />
+    <FeaturedPackages />
   </>)
 
 }
