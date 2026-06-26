@@ -1,202 +1,76 @@
-'use client'
-
-import Image from 'next/image'
-import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+import HeroCarousel from '@/components/home/HeroCarousel'
 import TrustStrip from '@/components/home/TrustStrip'
-import FeaturedPackages from '@/components/home/FeaturedPackages'
+import FeaturedPackagesClient from '@/components/home/FeaturedPackagesClient'
 import PopularDestinations from '@/components/home/PopularDestinations'
 import CollectionsSection from '@/components/home/CollectionsSection'
+import CTASection from '@/components/home/CTASection'
+import { getPackages, getCategories } from '@/lib/api'
+import type { WCProduct } from '@/lib/api'
+import type { PackageCardProps } from '@/components/shared/PackageCard'
 
-const WA_NUMBER = process.env.NEXT_PUBLIC_WA_NUMBER
+function getBadge(product: WCProduct): PackageCardProps['badgeType'] {
+  const regular = parseFloat(product.regular_price)
+  const price = parseFloat(product.price)
+  const discount = regular > 0 ? Math.round((1 - price / regular) * 100) : 0
 
-const SLIDES = [
-  {
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2026/03/kailash-yatra-scaled.png',
-    title: 'Devbhoomi',
-    subtitle: 'Sacred journeys to the abode of the divine',
-  },
-  {
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2024/11/ladakh-package.jpg',
-    title: 'Discover Ladakh',
-    subtitle: 'Where the mountains touch the sky',
-  },
-  {
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2024/10/kashmir.jpg',
-    title: 'Discover Kashmir',
-    subtitle: 'Paradise on Earth awaits you',
-  },
-]
+  if (product.on_sale && discount > 20) return 'deal'
 
-export default function Home() {
-  const [current, setCurrent] = useState(0)
-  const [resetKey, setResetKey] = useState(0)
+  const catNames = product.categories.map((c) => c.name.toLowerCase())
+  if (catNames.some((n) => n.includes('honeymoon'))) return 'honeymoon'
 
-  const goTo = useCallback((index: number) => {
-    setCurrent(index)
-    setResetKey((k) => k + 1)
-  }, [])
+  if (parseFloat(product.average_rating) >= 4.9) return 'bestseller'
 
-  const prev = () => goTo((current - 1 + SLIDES.length) % SLIDES.length)
-  const next = () => goTo((current + 1) % SLIDES.length)
+  return null
+}
 
-  // Auto-rotate; resets whenever resetKey changes (i.e. on manual nav)
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrent((c) => (c + 1) % SLIDES.length)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [resetKey])
+function mapProduct(product: WCProduct): PackageCardProps {
+  const durationMeta = product.meta_data.find((m) => m.key === '_package_days_duration')
+  const duration = typeof durationMeta?.value === 'string' ? durationMeta.value : ''
 
-  return (<>
-    <section className="relative w-full overflow-hidden" style={{ height: '560px' }}>
+  const routeMeta = product.meta_data.find((m) => m.key === '_package_place')
+  const route = typeof routeMeta?.value === 'string' ? routeMeta.value : undefined
 
-      {/* Images — all mounted, opacity controls which is visible */}
-      {SLIDES.map((slide, i) => (
-        <div
-          key={slide.image}
-          className="absolute inset-0 transition-opacity duration-700"
-          style={{ opacity: i === current ? 1 : 0 }}
-        >
-          <Image
-            src={slide.image}
-            alt={slide.title}
-            fill
-            sizes="100vw"
-            priority={i === 0}
-            style={{ objectFit: 'cover', objectPosition: 'center' }}
-          />
-        </div>
-      ))}
+  return {
+    id: product.id,
+    slug: product.slug,
+    title: product.name,
+    image: product.images[0]?.src ?? '',
+    price: parseFloat(product.price) || 0,
+    regularPrice: parseFloat(product.regular_price) || 0,
+    onSale: product.on_sale,
+    duration,
+    rating: parseFloat(product.average_rating) || 0,
+    reviewCount: product.rating_count,
+    destination: product.categories[0]?.name ?? '',
+    badgeType: getBadge(product),
+    route,
+  }
+}
 
-      {/* Gradient overlay — dark at bottom for text legibility */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.28) 55%, rgba(0,0,0,0.06) 100%)',
-        }}
-      />
+export default async function Home() {
+  const [products, categories] = await Promise.all([
+    getPackages({ perPage: 9 }),
+    getCategories(),
+  ])
 
-      {/* Slide content — fades with the image */}
-      {SLIDES.map((slide, i) => (
-        <div
-          key={slide.title}
-          className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 gap-5 transition-opacity duration-700"
-          style={{
-            opacity: i === current ? 1 : 0,
-            pointerEvents: i === current ? 'auto' : 'none',
-          }}
-          aria-hidden={i !== current}
-        >
-          <h1
-            className="font-display font-bold text-white m-0"
-            style={{
-              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-              textShadow: '0 2px 16px rgba(0,0,0,0.45)',
-            }}
-          >
-            {slide.title}
-          </h1>
+  const packages = products.map(mapProduct)
 
-          <p
-            className="text-lg font-medium max-w-xl m-0"
-            style={{
-              color: 'rgba(255,255,255,0.92)',
-              textShadow: '0 1px 8px rgba(0,0,0,0.4)',
-            }}
-          >
-            {slide.subtitle}
-          </p>
+  const tabs = [
+    'All',
+    ...categories
+      .filter((c) => c.count > 0)
+      .slice(0, 6)
+      .map((c) => c.name),
+  ]
 
-          <div className="flex flex-wrap items-center justify-center gap-4 mt-2">
-            <Link
-              href="/packages"
-              className="rounded-full px-8 py-3 text-sm font-semibold text-white transition-opacity duration-200 hover:opacity-90"
-              style={{ background: '#1E6B2E' }}
-            >
-              Explore Packages
-            </Link>
-
-            <Link
-              href={`https://wa.me/${WA_NUMBER}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="rounded-full px-8 py-3 text-sm font-semibold text-white transition-colors duration-200 hover:bg-white/10"
-              style={{ border: '2px solid #FFFFFF' }}
-            >
-              Chat on WhatsApp
-            </Link>
-          </div>
-        </div>
-      ))}
-
-      {/* Left arrow */}
-      <button
-        onClick={prev}
-        aria-label="Previous slide"
-        className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/55 text-white transition-colors duration-200"
-        style={{ width: '44px', height: '44px' }}
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M15 18l-6-6 6-6" />
-        </svg>
-      </button>
-
-      {/* Right arrow */}
-      <button
-        onClick={next}
-        aria-label="Next slide"
-        className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center justify-center rounded-full bg-black/30 hover:bg-black/55 text-white transition-colors duration-200"
-        style={{ width: '44px', height: '44px' }}
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M9 18l6-6-6-6" />
-        </svg>
-      </button>
-
-      {/* Dot indicators */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2">
-        {SLIDES.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goTo(i)}
-            aria-label={`Go to slide ${i + 1}`}
-            className="rounded-full transition-all duration-300"
-            style={{
-              height: '8px',
-              width: i === current ? '24px' : '8px',
-              background: i === current ? '#C8A96A' : 'rgba(255,255,255,0.55)',
-            }}
-          />
-        ))}
-      </div>
-    </section>
-
-    <TrustStrip />
-    <FeaturedPackages />
-    <PopularDestinations />
-    <CollectionsSection />
-  </>)
-
+  return (
+    <>
+      <HeroCarousel />
+      <TrustStrip />
+      <FeaturedPackagesClient packages={packages} tabs={tabs} />
+      <PopularDestinations />
+      <CollectionsSection />
+      <CTASection />
+    </>
+  )
 }

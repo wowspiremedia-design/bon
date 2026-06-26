@@ -1,200 +1,201 @@
-const WP_URL = process.env.NEXT_PUBLIC_WP_URL
+const BASE = process.env.NEXT_PUBLIC_WP_URL ?? 'https://cms.bonvoyagers.co'
 
-const STORE_API = `${WP_URL}/wp-json/wc/store/v1`
-const WP_API = `${WP_URL}/wp-json/wp/v2`
+// ── Types ──────────────────────────────────────────────────────────────────────
 
-const REVALIDATE = 60
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface WooProductImage {
+export interface WCProductImage {
   id: number
   src: string
-  thumbnail: string
   name: string
   alt: string
 }
 
-export interface WooProductCategory {
+export interface WCProductCategory {
   id: number
   name: string
   slug: string
-  link: string
 }
 
-export interface WooProductPrices {
+export interface WCProduct {
+  id: number
+  slug: string
+  name: string
   price: string
   regular_price: string
   sale_price: string
-  currency_code: string
-  currency_symbol: string
-  currency_prefix: string
-  currency_suffix: string
-  price_range: { min_amount: string; max_amount: string } | null
+  on_sale: boolean
+  average_rating: string
+  rating_count: number
+  images: WCProductImage[]
+  categories: WCProductCategory[]
+  meta_data: Array<{ id: number; key: string; value: unknown }>
+  acf?: Record<string, unknown>
+  itinerary?: unknown
+  inclusions?: unknown
+  exclusions?: unknown
+  faqs?: unknown
+  weather?: unknown
+  pricing?: unknown
+  map_query?: string
 }
 
-export interface WooProduct {
+export interface Category {
   id: number
-  name: string
   slug: string
-  permalink: string
-  type: string
-  status: string
-  featured: boolean
-  description: string
-  short_description: string
-  sku: string
-  prices: WooProductPrices
-  is_in_stock: boolean
-  is_on_sale: boolean
-  images: WooProductImage[]
-  categories: WooProductCategory[]
-  has_options: boolean
-  variations: number[]
-}
-
-export interface ProductCategory {
-  id: number
   name: string
-  slug: string
-  parent: number
-  description: string
-  image: { id: number; src: string; alt: string } | null
   count: number
-  link: string
-}
-
-export interface WPFeaturedMedia {
-  id: number
-  source_url: string
-  alt_text: string
-  media_details: {
-    width: number
-    height: number
-    sizes: Record<string, { source_url: string; width: number; height: number }>
-  }
 }
 
 export interface Destination {
   id: number
-  date: string
   slug: string
-  status: string
-  link: string
   title: { rendered: string }
-  content: { rendered: string }
   excerpt: { rendered: string }
-  featured_media: number
+  content: { rendered: string }
+  images?: WCProductImage[]
   acf?: Record<string, unknown>
-  _embedded?: { 'wp:featuredmedia'?: WPFeaturedMedia[] }
 }
 
 export interface Collection {
   id: number
-  date: string
   slug: string
-  status: string
-  link: string
-  title: { rendered: string }
-  content: { rendered: string }
-  excerpt: { rendered: string }
-  featured_media: number
+  name: string
+  description: string
+  image?: { id: number; src: string; alt: string }
   acf?: Record<string, unknown>
-  _embedded?: { 'wp:featuredmedia'?: WPFeaturedMedia[] }
 }
 
-export interface PaginatedResponse<T> {
-  items: T[]
-  total: number
-  totalPages: number
+export interface GetPackagesParams {
+  page?: number
+  perPage?: number
+  category?: string
+  onSale?: boolean
+  search?: string
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ── Auth ───────────────────────────────────────────────────────────────────────
 
-async function fetchJSON<T>(url: string): Promise<T> {
-  const res = await fetch(url, { next: { revalidate: REVALIDATE } })
-  if (!res.ok) throw new Error(`API error ${res.status}: ${url}`)
+function wcAuthHeader(): string {
+  const ck = process.env.WC_CONSUMER_KEY
+  const cs = process.env.WC_CONSUMER_SECRET
+  if (!ck || !cs) throw new Error('WooCommerce credentials are not configured')
+  return 'Basic ' + Buffer.from(`${ck}:${cs}`).toString('base64')
+}
+
+// ── Fetch helpers ──────────────────────────────────────────────────────────────
+
+async function wcFetch<T>(path: string): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    headers: { Authorization: wcAuthHeader() },
+    next: { revalidate: 60 },
+  })
+  if (!res.ok) throw new Error(`WooCommerce API error ${res.status}: ${path}`)
   return res.json() as Promise<T>
 }
 
-async function fetchPaginated<T>(url: string): Promise<PaginatedResponse<T>> {
-  const res = await fetch(url, { next: { revalidate: REVALIDATE } })
-  if (!res.ok) throw new Error(`API error ${res.status}: ${url}`)
-  const items = (await res.json()) as T[]
-  const total = parseInt(res.headers.get('x-wp-total') ?? '0', 10)
-  const totalPages = parseInt(res.headers.get('x-wp-totalpages') ?? '1', 10)
-  return { items, total, totalPages }
+async function wpFetch<T>(path: string): Promise<T> {
+  const res = await fetch(`${BASE}${path}`, {
+    next: { revalidate: 60 },
+  })
+  if (!res.ok) throw new Error(`WordPress API error ${res.status}: ${path}`)
+  return res.json() as Promise<T>
 }
 
-// ─── Packages (WooCommerce Products) ──────────────────────────────────────────
+// ── Raw CPT shape from WP REST API ─────────────────────────────────────────────
 
-export async function getAllPackages(
-  page = 1,
-  perPage = 12,
-): Promise<PaginatedResponse<WooProduct>> {
-  const url = `${STORE_API}/products?page=${page}&per_page=${perPage}&status=publish&_embed=1`
-  return fetchPaginated<WooProduct>(url)
+interface RawWPPost {
+  id: number
+  slug: string
+  title: { rendered: string }
+  excerpt: { rendered: string }
+  content: { rendered: string }
+  acf?: Record<string, unknown>
 }
 
-export async function getPackageBySlug(slug: string): Promise<WooProduct | null> {
-  const url = `${STORE_API}/products?slug=${encodeURIComponent(slug)}&_embed=1`
-  const res = await fetch(url, { next: { revalidate: REVALIDATE } })
-  if (!res.ok) throw new Error(`API error ${res.status}: ${url}`)
-  const products = (await res.json()) as WooProduct[]
-  return products[0] ?? null
+function normaliseCollection(raw: RawWPPost): Collection {
+  return {
+    id: raw.id,
+    slug: raw.slug,
+    name: raw.title.rendered,
+    description: raw.excerpt.rendered,
+    acf: raw.acf,
+  }
 }
 
-// Uses wp/v2/product_cat — requires the product_cat taxonomy to be REST-enabled
-export async function getPackageCategories(): Promise<ProductCategory[]> {
-  const url = `${WP_API}/product_cat?per_page=100&hide_empty=true`
-  return fetchJSON<ProductCategory[]>(url)
+// ── Packages ───────────────────────────────────────────────────────────────────
+
+export async function getPackages(params: GetPackagesParams = {}): Promise<WCProduct[]> {
+  const { page = 1, perPage = 12, category, onSale, search } = params
+  const qs = new URLSearchParams({
+    page: String(page),
+    per_page: String(perPage),
+    status: 'publish',
+  })
+  if (category) qs.set('category', category)
+  if (onSale)   qs.set('on_sale', 'true')
+  if (search)   qs.set('search', search)
+  qs.set('_fields', 'id,name,slug,price,regular_price,sale_price,on_sale,average_rating,rating_count,images,categories,meta_data')
+  return wcFetch<WCProduct[]>(`/wp-json/wc/v3/products?${qs.toString()}`)
 }
 
-export async function getSalePackages(
-  page = 1,
-  perPage = 12,
-): Promise<PaginatedResponse<WooProduct>> {
-  const url = `${STORE_API}/products?on_sale=true&page=${page}&per_page=${perPage}&status=publish&_embed=1`
-  return fetchPaginated<WooProduct>(url)
+export async function getPackageBySlug(slug: string): Promise<WCProduct | null> {
+  const results = await wcFetch<WCProduct[]>(
+    `/wp-json/wc/v3/products?slug=${encodeURIComponent(slug)}&status=publish`,
+  )
+  return results[0] ?? null
 }
 
-export async function searchPackages(
-  query: string,
-  page = 1,
-  perPage = 12,
-): Promise<PaginatedResponse<WooProduct>> {
-  const url = `${STORE_API}/products?search=${encodeURIComponent(query)}&page=${page}&per_page=${perPage}&status=publish&_embed=1`
-  return fetchPaginated<WooProduct>(url)
+// Uses WP REST endpoint to get full ACF fields alongside the product post
+export async function getPackageById(id: number): Promise<WCProduct | null> {
+  try {
+    return await wpFetch<WCProduct>(`/wp-json/wp/v2/product/${id}?acf_format=standard`)
+  } catch {
+    return null
+  }
 }
 
-// ─── Destinations (Custom Post Type) ──────────────────────────────────────────
+export async function getCategories(): Promise<Category[]> {
+  return wcFetch<Category[]>('/wp-json/wc/v3/products/categories?per_page=100')
+}
 
-export async function getAllDestinations(
-  page = 1,
-  perPage = 100,
-): Promise<Destination[]> {
-  const url = `${WP_API}/destinations?page=${page}&per_page=${perPage}&status=publish&_embed=1`
-  return fetchJSON<Destination[]>(url)
+export async function getSalePackages(perPage = 12): Promise<WCProduct[]> {
+  return wcFetch<WCProduct[]>(
+    `/wp-json/wc/v3/products?on_sale=true&per_page=${perPage}&status=publish`,
+  )
+}
+
+export async function searchPackages(query: string): Promise<WCProduct[]> {
+  return wcFetch<WCProduct[]>(
+    `/wp-json/wc/v3/products?search=${encodeURIComponent(query)}&status=publish`,
+  )
+}
+
+// ── Destinations ───────────────────────────────────────────────────────────────
+
+export async function getDestinations(): Promise<Destination[]> {
+  return wpFetch<Destination[]>(
+    '/wp-json/wp/v2/destination?per_page=100&acf_format=standard',
+  )
 }
 
 export async function getDestinationBySlug(slug: string): Promise<Destination | null> {
-  const url = `${WP_API}/destinations?slug=${encodeURIComponent(slug)}&_embed=1`
-  const items = await fetchJSON<Destination[]>(url)
-  return items[0] ?? null
+  const results = await wpFetch<Destination[]>(
+    `/wp-json/wp/v2/destination?slug=${encodeURIComponent(slug)}&acf_format=standard`,
+  )
+  return results[0] ?? null
 }
 
-// ─── Collections (Custom Post Type) ───────────────────────────────────────────
+// ── Collections ────────────────────────────────────────────────────────────────
 
-export async function getAllCollections(
-  page = 1,
-  perPage = 100,
-): Promise<Collection[]> {
-  const url = `${WP_API}/collections?page=${page}&per_page=${perPage}&status=publish&_embed=1`
-  return fetchJSON<Collection[]>(url)
+export async function getCollections(): Promise<Collection[]> {
+  const raw = await wpFetch<RawWPPost[]>(
+    '/wp-json/wp/v2/collection?per_page=100&acf_format=standard',
+  )
+  return raw.map(normaliseCollection)
 }
 
 export async function getCollectionBySlug(slug: string): Promise<Collection | null> {
-  const url = `${WP_API}/collections?slug=${encodeURIComponent(slug)}&_embed=1`
-  const items = await fetchJSON<Collection[]>(url)
-  return items[0] ?? null
+  const raw = await wpFetch<RawWPPost[]>(
+    `/wp-json/wp/v2/collection?slug=${encodeURIComponent(slug)}&acf_format=standard`,
+  )
+  return raw[0] ? normaliseCollection(raw[0]) : null
 }
