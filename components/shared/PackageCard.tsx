@@ -60,10 +60,10 @@ export default function PackageCard({
         .route-static  { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 11px; color: #888888; }
         .route-marquee { display: none; overflow: hidden; }
         .route-marquee-inner { display: inline-block; white-space: nowrap; will-change: transform; animation: routeScroll linear infinite; }
-        .route-wrapper:hover .route-static,
-        .route-wrapper:focus-within .route-static { display: none; }
-        .route-wrapper:hover .route-marquee,
-        .route-wrapper:focus-within .route-marquee { display: block; }
+        .group:hover .route-static,
+        .group:focus-within .route-static { display: none; }
+        .group:hover .route-marquee,
+        .group:focus-within .route-marquee { display: block; }
       `}</style>
 
       <Link
@@ -147,7 +147,7 @@ export default function PackageCard({
               </svg>
 
               {/* Text area: static (default) ↔ scrolling marquee (hover/focus) */}
-              <div className="route-wrapper" tabIndex={0}>
+              <div className="route-wrapper">
                 <span className="route-static">{route}</span>
                 <div className="route-marquee" aria-hidden="true">
                   <div
