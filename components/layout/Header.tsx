@@ -4,7 +4,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 
-const NAV_LINKS = [
+type NavLink = { href: string; label: string; isDeals?: boolean }
+
+const NAV_LINKS: NavLink[] = [
   { href: '/', label: 'Home' },
   { href: '/collections', label: 'Collections' },
   { href: '/packages', label: 'Packages' },
@@ -12,7 +14,7 @@ const NAV_LINKS = [
   { href: '/deals', label: 'Deals', isDeals: true },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
-] as const
+]
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
