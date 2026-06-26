@@ -3,24 +3,49 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Neutral palette */
+  --color-white: #FFFFFF;
+  --color-off-white: #F7F9F7;
+  --color-text-dark: #1A1A1A;
+  --color-text-body: #4A4A4A;
+  --color-text-muted: #888888;
+  --color-border: #E0EBE1;
+
+  /* Utility */
+  --color-whatsapp: #25D366;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-playfair);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  /* Brand greens */
+  --color-primary: #1E6B2E;
+  --color-primary-dark: #155223;
+  --color-primary-mid: #2E7D32;
+  --color-primary-light: #E8F5E9;
+
+  /* Gold */
+  --color-gold: #C8A96A;
+  --color-gold-dark: #A8893A;
+  --color-gold-light: #F5EDD8;
+
+  /* Amber */
+  --color-amber: #F5A623;
+  --color-amber-dark: #E65100;
+
+  /* Utility */
+  --color-footer: #0D1A0F;
+  --color-deal: #D90429;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-off-white);
+  color: var(--color-text-dark);
+  font-family: var(--font-sans), sans-serif;
 }
