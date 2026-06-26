@@ -125,7 +125,7 @@ export async function getPackages(params: GetPackagesParams = {}): Promise<WCPro
     per_page: String(perPage),
     status: 'publish',
   })
-  if (category) qs.set('category', category)
+  if (category) qs.set('category', String(category))
   if (onSale)   qs.set('on_sale', 'true')
   if (search)   qs.set('search', search)
   qs.set('_fields', 'id,name,slug,price,regular_price,sale_price,on_sale,average_rating,rating_count,images,categories,meta_data')
