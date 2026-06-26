@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
 import TrustStrip from '@/components/home/TrustStrip'
 import FeaturedPackages from '@/components/home/FeaturedPackages'
+import PopularDestinations from '@/components/home/PopularDestinations'
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WA_NUMBER
 
@@ -193,6 +194,7 @@ export default function Home() {
 
     <TrustStrip />
     <FeaturedPackages />
+    <PopularDestinations />
   </>)
 
 }
