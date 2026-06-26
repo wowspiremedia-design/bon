@@ -1,23 +1,20 @@
 import { NextResponse } from 'next/server'
-import { getPackages } from '@/lib/api'
 
 export async function GET() {
-  const packages = await getPackages({ perPage: 1 })
-  const first = packages[0]
+  const res = await fetch(
+    'https://cms.bonvoyagers.co/wp-json/wc/v3/products?category=15&per_page=2&consumer_key=ck_b88d72cf6f3d53f4ecf3f0122aa9e0038f70d966&consumer_secret=cs_63d38d45cf166bcdcc7d0dfca328a5d0c38593d6',
+    { next: { revalidate: 0 } },
+  )
 
-  if (!first) {
-    return NextResponse.json({ ok: false, message: 'No packages found' }, { status: 404 })
+  if (!res.ok) {
+    return NextResponse.json({ ok: false, status: res.status, statusText: res.statusText }, { status: res.status })
   }
+
+  const products = await res.json()
 
   return NextResponse.json({
     ok: true,
-    id: first.id,
-    slug: first.slug,
-    name: first.name,
-    price: first.price,
-    regular_price: first.regular_price,
-    sale_price: first.sale_price,
-    on_sale: first.on_sale,
-    meta_data: first.meta_data,
+    count: products.length,
+    products: products.map((p: { id: number; name: string; slug: string }) => ({ id: p.id, name: p.name, slug: p.slug })),
   })
 }

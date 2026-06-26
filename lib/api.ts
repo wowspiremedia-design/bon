@@ -62,7 +62,7 @@ export interface Collection {
 export interface GetPackagesParams {
   page?: number
   perPage?: number
-  category?: string
+  category?: string | number
   onSale?: boolean
   search?: string
 }
