@@ -28,14 +28,9 @@ export interface WCProduct {
   images: WCProductImage[]
   categories: WCProductCategory[]
   meta_data: Array<{ id: number; key: string; value: unknown }>
+  description?: string
+  short_description?: string
   acf?: Record<string, unknown>
-  itinerary?: unknown
-  inclusions?: unknown
-  exclusions?: unknown
-  faqs?: unknown
-  weather?: unknown
-  pricing?: unknown
-  map_query?: string
 }
 
 export interface Category {
