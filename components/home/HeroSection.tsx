@@ -16,6 +16,10 @@ export default function HeroSection({ images }: Props) {
   }, [])
 
   useEffect(() => {
+    console.log('HeroSection images:', images.length, images)
+  }, [images])
+
+  useEffect(() => {
     if (images.length <= 1) return
     const timer = setInterval(() => {
       setCurrent((c) => (c + 1) % images.length)

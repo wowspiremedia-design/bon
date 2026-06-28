@@ -44,79 +44,84 @@ export default function HeroCarousel({ slides }: Props) {
         <div className="w-12 h-[2px] bg-[#C8A96A] mx-auto" />
       </div>
 
-      {/* Cards row */}
-      <div
-        ref={scrollRef}
-        className="flex gap-5 px-6 md:px-12 pb-4 snap-x snap-mandatory overflow-x-auto"
-        style={{ scrollbarWidth: 'none' }}
-      >
-        {slides.map((slide, i) => (
-          <div
-            key={i}
-            className="flex-shrink-0 w-[320px] md:w-[420px] h-[480px] md:h-[540px] rounded-3xl overflow-hidden relative snap-start cursor-pointer group"
-          >
-            {/* Image */}
-            <img
-              src={slide.image}
-              alt={slide.title}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-            />
+      {/* Cards row with side arrows */}
+      <div className="relative">
 
-            {/* Gold accent top line */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#C8A96A] via-amber-300 to-[#C8A96A] opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
-
-            {/* Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-            <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-            {/* Card content */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-              <span className="inline-block mb-3 bg-[#C8A96A]/20 border border-[#C8A96A]/40 text-[#C8A96A] text-xs px-3 py-1 rounded-full font-medium">
-                BON VOYAGERS JOURNEY
-              </span>
-              <h3
-                className="font-bold text-white mb-2 leading-tight"
-                style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.4rem, 2.5vw, 1.75rem)' }}
-              >
-                {slide.title}
-              </h3>
-              <p className="text-white/70 text-sm leading-relaxed mb-5 line-clamp-2">
-                {slide.sub_title}
-              </p>
-              <Link
-                href={slide.button_url}
-                className="inline-flex items-center gap-2 bg-[#C8A96A] hover:bg-amber-400 text-black font-semibold text-sm px-5 py-2.5 rounded-full transition-all duration-300 hover:gap-3"
-              >
-                {slide.button_text}
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Navigation arrows */}
-      <div className="flex gap-3 justify-end px-6 md:px-12 mt-6">
+        {/* Left arrow */}
         <button
           onClick={scrollLeft}
           aria-label="Scroll left"
-          className="w-12 h-12 rounded-full border border-white/20 bg-white/5 hover:bg-[#C8A96A] hover:border-[#C8A96A] transition-all duration-300 text-white flex items-center justify-center"
+          className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white flex items-center justify-center transition-all duration-300 border border-white/20"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 18l-6-6 6-6" />
           </svg>
         </button>
+
+        {/* Scrollable cards */}
+        <div
+          ref={scrollRef}
+          className="flex gap-5 px-6 md:px-12 pb-4 snap-x snap-mandatory overflow-x-auto"
+          style={{ scrollbarWidth: 'none' }}
+        >
+          {slides.map((slide, i) => (
+            <div
+              key={i}
+              className="flex-shrink-0 w-[320px] md:w-[420px] h-[480px] md:h-[540px] rounded-3xl overflow-hidden relative snap-start cursor-pointer group"
+            >
+              {/* Image */}
+              <img
+                src={slide.image}
+                alt={slide.title}
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              />
+
+              {/* Gold accent top line */}
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#C8A96A] via-amber-300 to-[#C8A96A] opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10" />
+
+              {/* Overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+              <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+              {/* Card content */}
+              <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
+                <span className="inline-block mb-3 bg-[#C8A96A]/20 border border-[#C8A96A]/40 text-[#C8A96A] text-xs px-3 py-1 rounded-full font-medium">
+                  BON VOYAGERS JOURNEY
+                </span>
+                <h3
+                  className="font-bold text-white mb-2 leading-tight"
+                  style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.4rem, 2.5vw, 1.75rem)' }}
+                >
+                  {slide.title}
+                </h3>
+                <p className="text-white/70 text-sm leading-relaxed mb-5 line-clamp-2">
+                  {slide.sub_title}
+                </p>
+                <Link
+                  href={slide.button_url}
+                  className="inline-flex items-center gap-2 bg-[#C8A96A] hover:bg-amber-400 text-black font-semibold text-sm px-5 py-2.5 rounded-full transition-all duration-300 hover:gap-3"
+                >
+                  {slide.button_text}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Right arrow */}
         <button
           onClick={scrollRight}
           aria-label="Scroll right"
-          className="w-12 h-12 rounded-full border border-white/20 bg-white/5 hover:bg-[#C8A96A] hover:border-[#C8A96A] transition-all duration-300 text-white flex items-center justify-center"
+          className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 w-12 h-12 rounded-full bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white flex items-center justify-center transition-all duration-300 border border-white/20"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M9 18l6-6-6-6" />
           </svg>
         </button>
+
       </div>
     </section>
   )

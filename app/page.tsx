@@ -1,13 +1,12 @@
 import HeroSection from '@/components/home/HeroSection'
 import HeroCarousel from '@/components/home/HeroCarousel'
-import type { HeroSlide } from '@/components/home/HeroCarousel'
 import TrustStrip from '@/components/home/TrustStrip'
 import FeaturedPackagesClient from '@/components/home/FeaturedPackagesClient'
 import PopularDestinations from '@/components/home/PopularDestinations'
 import CollectionsSection from '@/components/home/CollectionsSection'
 import CTASection from '@/components/home/CTASection'
 import PageLoader from '@/components/layout/PageLoader'
-import { getPackages, getDestinationImages } from '@/lib/api'
+import { getPackages, getHeroSlides } from '@/lib/api'
 import type { PackageCardProps } from '@/components/shared/PackageCard'
 import { mapProduct } from '@/lib/mapProduct'
 
@@ -24,37 +23,16 @@ const CATEGORIES = [
 
 const TAB_LABELS = ['All', 'Kashmir', 'Andaman', 'Meghalaya', 'Ladakh', 'Bhutan', 'Darjeeling']
 
-const HERO_SLIDES: HeroSlide[] = [
-  {
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2026/03/kailash-yatra-scaled.png',
-    title: 'Devbhoomi',
-    sub_title: 'Sacred journeys to the abode of the divine',
-    button_text: 'Explore Packages',
-    button_url: '/packages',
-  },
-  {
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2024/11/ladakh-package.jpg',
-    title: 'Discover Ladakh',
-    sub_title: 'Where the mountains touch the sky',
-    button_text: 'Explore Ladakh',
-    button_url: '/destination/ladakh-tour-packages',
-  },
-  {
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2024/10/kashmir.jpg',
-    title: 'Discover Kashmir',
-    sub_title: 'Paradise on Earth awaits you',
-    button_text: 'Explore Kashmir',
-    button_url: '/destination/kashmir-tour-package',
-  },
-]
-
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default async function Home() {
-  const [packageResults, destinationImages] = await Promise.all([
+  const [heroSlides, packageResults] = await Promise.all([
+    getHeroSlides(),
     Promise.all(CATEGORIES.map(({ id }) => getPackages({ category: id, perPage: 2 }))),
-    getDestinationImages(),
   ])
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const heroImages = heroSlides.map((s: any) => s.image).filter(Boolean)
 
   const seen = new Set<number>()
   const packages: PackageCardProps[] = []
@@ -74,14 +52,14 @@ export default async function Home() {
     <>
       <PageLoader />
 
-      {/* 1. Cinematic hero with destination images */}
-      <HeroSection images={destinationImages} />
+      {/* 1. Cinematic hero with ACF slider images */}
+      <HeroSection images={heroImages} />
 
       {/* 2. Trust strip */}
       <TrustStrip />
 
       {/* 3. ACF journey cards carousel */}
-      <HeroCarousel slides={HERO_SLIDES} />
+      <HeroCarousel slides={heroSlides} />
 
       {/* 4. Collections */}
       <div className="pb-20">

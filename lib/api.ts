@@ -241,19 +241,40 @@ export async function getActiveCollections(): Promise<Collection[]> {
 export async function getDestinationImages(): Promise<string[]> {
   try {
     const res = await fetch(
-      `${BASE}/wp-json/wp/v2/dt_places?per_page=20&_embed&_fields=id,_embedded`,
+      `${BASE}/wp-json/wp/v2/dt_places?per_page=20&_embed`,
       { next: { revalidate: 3600 } },
     )
     if (!res.ok) return []
-    const places = await res.json() as Array<{
-      _embedded?: { 'wp:featuredmedia'?: Array<{ source_url?: string }> }
-    }>
+    const places = await res.json()
     const images: string[] = []
     for (const place of places) {
-      const url = place._embedded?.['wp:featuredmedia']?.[0]?.source_url
-      if (url) images.push(url)
+      const media = place._embedded?.['wp:featuredmedia']
+      if (media && Array.isArray(media) && media[0]?.source_url) {
+        images.push(media[0].source_url)
+      }
     }
-    return images.sort(() => Math.random() - 0.5).slice(0, 12)
+    const filtered = images.filter(Boolean)
+    console.log('Destination images loaded:', filtered.length, filtered)
+    return filtered
+  } catch (err) {
+    console.error('getDestinationImages error:', err)
+    return []
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function getHeroSlides(): Promise<any[]> {
+  try {
+    const res = await fetch(
+      `${BASE}/wp-json/wp/v2/pages/7513?acf_format=standard`,
+      { next: { revalidate: 3600 } },
+    )
+    if (!res.ok) return []
+    const page = await res.json()
+    const slides = page?.acf?.slider_images
+    if (!Array.isArray(slides)) return []
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return slides.filter((s: any) => s.image)
   } catch {
     return []
   }
