@@ -1,10 +1,9 @@
-import Link from 'next/link'
 import CollectionRow from './CollectionRow'
 import { getActiveCollections, getPackages, type Collection } from '@/lib/api'
 import { mapProduct } from '@/lib/mapProduct'
 import type { PackageCardProps } from '@/components/shared/PackageCard'
 
-const ROW_BG = ['#FFFFFF', '#F7F6F2']
+const ROW_BG = ['#FFFFFF', '#F9F7F4']
 
 const COLLECTION_EMOJIS: Record<string, string> = {
   spiritual: '🕉️',
@@ -68,8 +67,8 @@ export default async function CollectionsSection() {
 
   return (
     <>
-      {/* ── Light section header ── */}
-      <section style={{ background: '#F7F6F2', padding: 'clamp(36px, 4vw, 52px) 0 clamp(28px, 3vw, 40px)' }}>
+      {/* ── Section header ── */}
+      <section className="pt-6 pb-10" style={{ background: '#FFFFFF' }}>
         <div
           style={{
             maxWidth: '1280px',
@@ -80,23 +79,23 @@ export default async function CollectionsSection() {
         >
           {/* Small label */}
           <p
-            className="text-sm font-bold tracking-widest uppercase mb-3"
-            style={{ color: '#1E6B2E' }}
+            className="mb-3 uppercase"
+            style={{ color: '#1E6B2E', fontSize: '12px', fontWeight: 600, letterSpacing: '0.12em' }}
           >
             CURATED EXPERIENCES
           </p>
 
-          {/* H2 with highlighted word */}
+          {/* H2 with warm gold highlight */}
           <h2
-            className="font-display mb-4"
-            style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', fontWeight: 700, color: '#1A1A1A', lineHeight: 1.2 }}
+            className="font-display mb-0"
+            style={{ fontSize: 'clamp(28px, 4vw, 36px)', fontWeight: 700, color: '#1A1A1A', lineHeight: 1.2 }}
           >
             <span
               style={{
-                background: '#C8A96A',
+                background: '#FFF3D6',
                 color: '#1A1A1A',
                 borderRadius: '4px',
-                padding: '0 6px 2px',
+                padding: '2px 8px',
               }}
             >
               Bon Voyagers
@@ -106,23 +105,17 @@ export default async function CollectionsSection() {
 
           {/* Gold divider */}
           <div
-            className="mx-auto mb-5"
-            style={{ width: '48px', height: '2px', background: '#C8A96A', borderRadius: '2px' }}
+            className="mx-auto"
+            style={{ width: '48px', height: '2px', background: '#C8A96A', borderRadius: '2px', margin: '16px auto' }}
           />
 
-          {/* Subtitle + View All link */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-center gap-3">
-            <p style={{ fontSize: '14px', color: '#888888', lineHeight: 1.6 }}>
-              Handpicked journeys crafted with intention - immersive, elegant, and unforgettable.
-            </p>
-            <Link
-              href="/collections"
-              className="flex-shrink-0 font-semibold transition-opacity duration-200 hover:opacity-75"
-              style={{ color: '#1E6B2E', fontSize: '14px', whiteSpace: 'nowrap' }}
-            >
-              View All Collections →
-            </Link>
-          </div>
+          {/* Subtitle */}
+          <p
+            className="mx-auto"
+            style={{ fontSize: '15px', color: '#6B7280', lineHeight: 1.6, maxWidth: '520px' }}
+          >
+            Handpicked journeys crafted with intention. Immersive, elegant, and unforgettable.
+          </p>
         </div>
       </section>
 

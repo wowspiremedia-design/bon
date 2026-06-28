@@ -63,13 +63,8 @@ export default function HeroCarousel() {
         </div>
       ))}
 
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.28) 55%, rgba(0,0,0,0.06) 100%)',
-        }}
-      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-amber-900/30 to-transparent" />
 
       {SLIDES.map((slide, i) => (
         <div

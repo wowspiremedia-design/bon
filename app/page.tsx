@@ -48,10 +48,18 @@ export default async function Home() {
     <>
       <HeroCarousel />
       <TrustStrip />
-      <CollectionsSection />
-      <FeaturedPackagesClient packages={packages} tabs={TAB_LABELS} />
-      <PopularDestinations />
-      <CTASection />
+      <div className="pb-20">
+        <CollectionsSection />
+      </div>
+      <div className="py-20">
+        <FeaturedPackagesClient packages={packages} tabs={TAB_LABELS} />
+      </div>
+      <div className="py-20">
+        <PopularDestinations />
+      </div>
+      <div className="py-20">
+        <CTASection />
+      </div>
     </>
   )
 }

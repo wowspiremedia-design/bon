@@ -44,10 +44,13 @@ export interface Destination {
   id: number
   slug: string
   title: { rendered: string }
-  excerpt: { rendered: string }
+  excerpt?: { rendered: string }
   content: { rendered: string }
   images?: WCProductImage[]
   acf?: Record<string, unknown>
+  _embedded?: {
+    'wp:featuredmedia'?: Array<{ source_url: string }>
+  }
 }
 
 export interface CollectionACFSource {
@@ -198,10 +201,14 @@ export async function getDestinations(): Promise<Destination[]> {
 }
 
 export async function getDestinationBySlug(slug: string): Promise<Destination | null> {
-  const results = await wpFetch<Destination[]>(
-    `/wp-json/wp/v2/destination?slug=${encodeURIComponent(slug)}&acf_format=standard`,
-  )
-  return results[0] ?? null
+  try {
+    const results = await wpFetch<Destination[]>(
+      `/wp-json/wp/v2/destination?slug=${encodeURIComponent(slug)}&acf_format=standard&_embed`,
+    )
+    return results[0] ?? null
+  } catch {
+    return null
+  }
 }
 
 // ── Collections ────────────────────────────────────────────────────────────────
