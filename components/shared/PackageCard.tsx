@@ -22,7 +22,7 @@ export interface PackageCardProps {
 const BADGE = {
   bestseller: { label: 'Bestseller', bg: '#1E6B2E',  color: '#FFFFFF' },
   honeymoon:  { label: 'Honeymoon',  bg: '#C8A96A',  color: '#0D1A0F' },
-  deal:       { label: 'Deal',       bg: '#D90429',  color: '#FFFFFF' },
+  deal:       { label: 'Deal',       bg: '#F5A623',  color: '#FFFFFF' },
   luxury:     { label: 'Luxury',     bg: '#155223',  color: '#FFFFFF' },
   budget:     { label: 'Budget',     bg: '#F5A623',  color: '#1A1A1A' },
 } as const
@@ -64,28 +64,65 @@ export default function PackageCard({
         .group:focus-within .route-static { display: none; }
         .group:hover .route-marquee,
         .group:focus-within .route-marquee { display: block; }
+
+        @keyframes breathe-green {
+          0%, 100% { background-color: #1E6B2E; }
+          50%       { background-color: #2E8B47; }
+        }
+        @keyframes breathe-amber {
+          0%, 100% { background-color: #F5A623; }
+          50%       { background-color: #F8BE5C; }
+        }
+        .badge-breathe-green {
+          background-color: #1E6B2E;
+          animation: breathe-green 2.5s ease-in-out infinite;
+        }
+        .badge-breathe-amber {
+          background-color: #F5A623;
+          animation: breathe-amber 2.5s ease-in-out infinite;
+        }
+
+        .pkg-card {
+          background: rgba(255,255,255,0.85);
+          border: 1px solid rgba(255,255,255,0.6);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+          transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+          backdrop-filter: blur(8px);
+          -webkit-backdrop-filter: blur(8px);
+        }
+        .pkg-card:hover {
+          box-shadow: 0 12px 36px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.08);
+          transform: translateY(-5px);
+        }
       `}</style>
 
       <Link
         href={`/package/${slug}`}
-        className="group block rounded-[16px] overflow-hidden border border-[#E0EBE1] bg-white transition-all duration-300 shadow-[0_2px_12px_rgba(0,0,0,0.07)] hover:-translate-y-1 hover:shadow-[0_8px_28px_rgba(0,0,0,0.13)]"
+        className="group block rounded-[16px] overflow-hidden pkg-card"
       >
         {/* ── Image ── */}
-        <div className="relative h-[200px] overflow-hidden">
+        <div className="relative h-[220px] overflow-hidden rounded-t-[16px]">
           <Image
             src={image}
             alt={title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
             style={{ objectFit: 'cover', objectPosition: 'center' }}
-            className="transition-transform duration-500 group-hover:scale-105"
+            className="transition-transform duration-[400ms] ease-out group-hover:scale-[1.04]"
           />
 
           {/* Badge — top left */}
           {badge && (
             <span
-              className="absolute top-3 left-3 rounded-full px-[10px] py-[4px] text-[11px] font-700 leading-none z-10"
-              style={{ background: badge.bg, color: badge.color, fontWeight: 700 }}
+              className={`absolute top-3 left-3 rounded-[6px] px-[10px] py-[4px] text-[11px] leading-none z-10${
+                badgeType === 'bestseller' ? ' badge-breathe-green' :
+                badgeType === 'deal'       ? ' badge-breathe-amber' : ''
+              }`}
+              style={
+                (badgeType === 'bestseller' || badgeType === 'deal')
+                  ? { color: badge.color, fontWeight: 700 }
+                  : { background: badge.bg, color: badge.color, fontWeight: 700 }
+              }
             >
               {badge.label}
             </span>
@@ -94,10 +131,20 @@ export default function PackageCard({
           {/* Discount % — bottom left */}
           {onSale && discountPct > 0 && (
             <span
-              className="absolute bottom-3 left-3 rounded-[6px] px-[8px] py-[4px] text-[11px] leading-none z-10"
-              style={{ background: 'rgba(0,0,0,0.72)', color: '#FFFFFF', fontWeight: 600 }}
+              className="absolute bottom-3 left-3 rounded-[6px] px-[8px] py-[4px] text-[11px] leading-none z-10 badge-breathe-green"
+              style={{ color: '#FFFFFF', fontWeight: 700 }}
             >
               {discountPct}% OFF
+            </span>
+          )}
+
+          {/* Duration pill — bottom right */}
+          {duration && (
+            <span
+              className="absolute bottom-3 right-3 rounded-[8px] px-[10px] py-[4px] text-[12px] leading-none z-10"
+              style={{ background: 'rgba(0,0,0,0.55)', color: '#FFFFFF', fontWeight: 600 }}
+            >
+              {duration}
             </span>
           )}
         </div>
@@ -107,13 +154,12 @@ export default function PackageCard({
 
           {/* Destination */}
           <p
-            className="mb-[6px]"
+            className="mb-[6px] uppercase"
             style={{
               color: '#1E6B2E',
               fontSize: '11px',
-              fontWeight: 700,
-              letterSpacing: '0.09em',
-              textTransform: 'uppercase',
+              fontWeight: 600,
+              letterSpacing: '0.08em',
             }}
           >
             {destination}
@@ -122,7 +168,7 @@ export default function PackageCard({
           {/* Title — 2-line clamp */}
           <h3
             className="mb-[10px] line-clamp-2"
-            style={{ fontSize: '14px', fontWeight: 600, color: '#1A1A1A', lineHeight: '1.4' }}
+            style={{ fontSize: '15px', fontWeight: 600, color: '#1A1A1A', lineHeight: '1.4' }}
           >
             {title}
           </h3>
@@ -146,7 +192,6 @@ export default function PackageCard({
                 <circle cx="12" cy="10" r="3" />
               </svg>
 
-              {/* Text area: static (default) ↔ scrolling marquee (hover/focus) */}
               <div className="route-wrapper">
                 <span className="route-static">{route}</span>
                 <div className="route-marquee" aria-hidden="true">
@@ -161,19 +206,11 @@ export default function PackageCard({
             </div>
           )}
 
-          {/* Meta row */}
+          {/* Meta row — rating and reviews */}
           <div
             className="flex items-center gap-3 mb-[14px] flex-wrap"
             style={{ fontSize: '12px', color: '#888888' }}
           >
-            <span className="flex items-center gap-[5px]">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-              {duration}
-            </span>
-
             <span className="flex items-center gap-[4px]">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="#C8A96A" aria-hidden="true">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
@@ -184,41 +221,38 @@ export default function PackageCard({
             <span>({reviewCount.toLocaleString('en-IN')} reviews)</span>
           </div>
 
-          {/* Price + Button */}
-          <div className="flex items-end justify-between gap-2">
-
-            <div>
-              {onSale && (
-                <p
-                  className="line-through leading-none mb-[3px]"
-                  style={{ fontSize: '12px', color: '#AAAAAA' }}
-                >
-                  {fmt(regularPrice)}
-                </p>
-              )}
+          {/* Price */}
+          <div className="mb-3">
+            {onSale && (
               <p
-                className="leading-none mb-[3px]"
-                style={{ fontSize: '20px', fontWeight: 800, color: '#1E6B2E' }}
+                className="line-through leading-none mb-[3px]"
+                style={{ fontSize: '13px', color: '#AAAAAA' }}
               >
-                {fmt(price)}
+                {fmt(regularPrice)}
               </p>
-              <p style={{ fontSize: '11px', color: '#888888' }}>per person</p>
-            </div>
-
-            <div
-              className="flex-shrink-0 rounded-[8px] transition-opacity duration-200 group-hover:opacity-90"
-              style={{
-                background: '#1E6B2E',
-                color: '#FFFFFF',
-                padding: '9px 16px',
-                fontSize: '13px',
-                fontWeight: 700,
-              }}
+            )}
+            <p
+              className="leading-none mb-[3px]"
+              style={{ fontSize: '20px', fontWeight: 700, color: '#1E6B2E' }}
             >
-              Book Now
-            </div>
-
+              {fmt(price)}
+            </p>
+            <p style={{ fontSize: '12px', color: '#888888' }}>per person</p>
           </div>
+
+          {/* Book Now button — full width */}
+          <div
+            className="w-full text-center rounded-[10px] bg-[#1E6B2E] group-hover:bg-[#155222] transition-colors duration-200"
+            style={{
+              color: '#FFFFFF',
+              padding: '10px 16px',
+              fontSize: '14px',
+              fontWeight: 600,
+            }}
+          >
+            Book Now
+          </div>
+
         </div>
       </Link>
     </>

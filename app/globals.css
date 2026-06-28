@@ -14,6 +14,10 @@
 
   /* Utility */
   --color-whatsapp: #25D366;
+
+  /* Card design tokens */
+  --card-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --card-radius: 16px;
 }
 
 @theme inline {
@@ -45,7 +49,14 @@
 }
 
 body {
-  background: var(--color-off-white);
+  background: #FFFFFF;
   color: var(--color-text-dark);
   font-family: var(--font-sans), sans-serif;
+}
+
+/* Global card defaults — apply via var(--card-shadow) and var(--card-radius) */
+.card,
+[data-card] {
+  box-shadow: var(--card-shadow);
+  border-radius: var(--card-radius);
 }

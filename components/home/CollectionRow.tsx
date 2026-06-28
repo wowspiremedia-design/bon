@@ -43,36 +43,43 @@ export default function CollectionRow({
   }
 
   return (
-    <section style={{ background: bgColor, padding: 'clamp(40px, 5vw, 56px) 0' }}>
+    <section style={{ background: bgColor, padding: '48px 0' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 clamp(16px, 4vw, 40px)' }}>
 
         {/* ── Row header ── */}
         <div className="flex items-start justify-between gap-4 mb-8">
           <div>
             <p
-              className="mb-1"
-              style={{ color: '#C8A96A', fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase' }}
+              className="mb-2 uppercase"
+              style={{ color: '#C8A96A', fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em' }}
             >
-              <span className="mr-2">{emoji}</span>BON COLLECTION
+              <span className="mr-2" style={{ fontSize: '24px' }}>{emoji}</span>BON COLLECTION
             </p>
             <h2
               className="font-display mb-2"
-              style={{ fontSize: 'clamp(1.4rem, 2.8vw, 2rem)', fontWeight: 700, color: '#1A1A1A', lineHeight: 1.2 }}
+              style={{
+                fontSize: '26px',
+                fontWeight: 700,
+                color: '#1A1A1A',
+                lineHeight: 1.2,
+                borderLeft: '3px solid #C8A96A',
+                paddingLeft: '12px',
+              }}
             >
               {name}
             </h2>
             {description && (
-              <p style={{ fontSize: '14px', color: '#666666', maxWidth: '480px', lineHeight: 1.5 }}>
+              <p style={{ fontSize: '14px', color: '#6B7280', maxWidth: '480px', lineHeight: 1.6 }}>
                 {description}
               </p>
             )}
             <Link
               href={viewAllHref}
               className="inline-flex items-center gap-1 mt-3 font-semibold transition-opacity duration-200 hover:opacity-75"
-              style={{ color: '#1E6B2E', fontSize: '13px' }}
+              style={{ color: '#1E6B2E', fontSize: '14px' }}
             >
               View all in this collection
-              <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
+              <span>→</span>
             </Link>
           </div>
 
@@ -82,18 +89,18 @@ export default function CollectionRow({
               aria-label="Scroll left"
               onClick={() => scroll('left')}
               style={{
-                width: 36,
-                height: 36,
+                width: 40,
+                height: 40,
                 borderRadius: '50%',
-                border: `2px solid ${canLeft ? '#1E6B2E' : '#CCCCCC'}`,
-                background: canLeft ? '#1E6B2E' : 'transparent',
-                color: canLeft ? '#FFFFFF' : '#CCCCCC',
+                border: 'none',
+                background: canLeft ? '#1E6B2E' : '#E5E7EB',
+                color: canLeft ? '#FFFFFF' : '#9CA3AF',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: canLeft ? 'pointer' : 'default',
                 transition: 'all 0.2s',
-                fontSize: '16px',
+                fontSize: '18px',
                 lineHeight: 1,
               }}
             >
@@ -103,18 +110,18 @@ export default function CollectionRow({
               aria-label="Scroll right"
               onClick={() => scroll('right')}
               style={{
-                width: 36,
-                height: 36,
+                width: 40,
+                height: 40,
                 borderRadius: '50%',
-                border: `2px solid ${canRight ? '#1E6B2E' : '#CCCCCC'}`,
-                background: canRight ? '#1E6B2E' : 'transparent',
-                color: canRight ? '#FFFFFF' : '#CCCCCC',
+                border: 'none',
+                background: canRight ? '#1E6B2E' : '#E5E7EB',
+                color: canRight ? '#FFFFFF' : '#9CA3AF',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: canRight ? 'pointer' : 'default',
                 transition: 'all 0.2s',
-                fontSize: '16px',
+                fontSize: '18px',
                 lineHeight: 1,
               }}
             >
