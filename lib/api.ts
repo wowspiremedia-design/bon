@@ -238,6 +238,27 @@ export async function getActiveCollections(): Promise<Collection[]> {
   }
 }
 
+export async function getDestinationImages(): Promise<string[]> {
+  try {
+    const res = await fetch(
+      `${BASE}/wp-json/wp/v2/dt_places?per_page=20&_embed&_fields=id,_embedded`,
+      { next: { revalidate: 3600 } },
+    )
+    if (!res.ok) return []
+    const places = await res.json() as Array<{
+      _embedded?: { 'wp:featuredmedia'?: Array<{ source_url?: string }> }
+    }>
+    const images: string[] = []
+    for (const place of places) {
+      const url = place._embedded?.['wp:featuredmedia']?.[0]?.source_url
+      if (url) images.push(url)
+    }
+    return images.sort(() => Math.random() - 0.5).slice(0, 12)
+  } catch {
+    return []
+  }
+}
+
 export async function getDestinationGallery(postId: number): Promise<string[]> {
   try {
     const res = await fetch(
