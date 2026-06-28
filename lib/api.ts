@@ -196,14 +196,14 @@ export async function searchPackages(query: string): Promise<WCProduct[]> {
 
 export async function getDestinations(): Promise<Destination[]> {
   return wpFetch<Destination[]>(
-    '/wp-json/wp/v2/destination?per_page=100&acf_format=standard',
+    '/wp-json/wp/v2/dt_places?per_page=100',
   )
 }
 
 export async function getDestinationBySlug(slug: string): Promise<Destination | null> {
   try {
     const results = await wpFetch<Destination[]>(
-      `/wp-json/wp/v2/destination?slug=${encodeURIComponent(slug)}&acf_format=standard&_embed`,
+      `/wp-json/wp/v2/dt_places?slug=${encodeURIComponent(slug)}&_embed`,
     )
     return results[0] ?? null
   } catch {
@@ -233,6 +233,23 @@ export async function getActiveCollections(): Promise<Collection[]> {
     return all
       .filter(c => c.is_active === true || c.is_active === 'true')
       .sort((a, b) => Number(a.collection_priority ?? 99) - Number(b.collection_priority ?? 99))
+  } catch {
+    return []
+  }
+}
+
+export async function getDestinationGallery(postId: number): Promise<string[]> {
+  try {
+    const res = await fetch(
+      `${BASE}/wp-json/wp/v2/media?parent=${postId}&per_page=20&orderby=date&order=asc`,
+      { next: { revalidate: 3600 } },
+    )
+    if (!res.ok) return []
+    const media = await res.json() as Array<{ mime_type?: string; source_url?: string }>
+    return media
+      .filter((m) => m.mime_type?.startsWith('image/'))
+      .map((m) => m.source_url ?? '')
+      .filter(Boolean)
   } catch {
     return []
   }

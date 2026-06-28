@@ -1,9 +1,16 @@
-import Image from 'next/image'
-import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getDestinationBySlug, getPackages } from '@/lib/api'
+import { getDestinationBySlug, getDestinationGallery, getPackages } from '@/lib/api'
 import { mapProduct } from '@/lib/mapProduct'
 import PackageCard from '@/components/shared/PackageCard'
+import DestinationHeroCarousel from '@/components/destination/DestinationHeroCarousel'
+import DestinationTrustStrip from '@/components/destination/DestinationTrustStrip'
+import DestinationLeadMagnet from '@/components/destination/DestinationLeadMagnet'
+import DestinationPhotoGallery from '@/components/destination/DestinationPhotoGallery'
+import WhyVisitSection from '@/components/destination/WhyVisitSection'
+import DestinationFinalCTA from '@/components/destination/DestinationFinalCTA'
+import DestinationWhatsAppStrip from '@/components/destination/DestinationWhatsAppStrip'
+import DestinationMobileBar from '@/components/destination/DestinationMobileBar'
 
 // ── Category map ───────────────────────────────────────────────────────────────
 
@@ -33,25 +40,15 @@ const DESTINATION_CATEGORY_MAP: Record<string, number> = {
 }
 
 function getCategoryId(slug: string, title: string): number | null {
-  const slugLower = slug.toLowerCase()
+  const s = slug.toLowerCase()
   for (const [key, id] of Object.entries(DESTINATION_CATEGORY_MAP)) {
-    if (slugLower.includes(key)) return id
+    if (s.includes(key)) return id
   }
-  const titleLower = title.toLowerCase()
+  const t = title.toLowerCase()
   for (const [key, id] of Object.entries(DESTINATION_CATEGORY_MAP)) {
-    if (titleLower.includes(key)) return id
+    if (t.includes(key)) return id
   }
   return null
-}
-
-function titleFromSlug(slug: string): string {
-  const lower = slug.toLowerCase()
-  for (const key of Object.keys(DESTINATION_CATEGORY_MAP)) {
-    if (lower.includes(key)) {
-      return key.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-    }
-  }
-  return slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
 }
 
 // ── Metadata ───────────────────────────────────────────────────────────────────
@@ -63,11 +60,15 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   const destination = await getDestinationBySlug(slug)
-  const title = destination?.title?.rendered || titleFromSlug(slug)
-  const description = destination?.excerpt?.rendered?.replace(/<[^>]*>/g, '').trim() || ''
+  if (!destination) return {}
+  const title = destination.title?.rendered || 'Destination'
+  const description = (destination.excerpt?.rendered || '')
+    .replace(/<[^>]*>/g, '')
+    .trim()
+    .slice(0, 160)
   return {
-    title: `${title} Tour Packages | Bon Voyagers`,
-    description: description.slice(0, 160),
+    title: `${title} Tour Packages & Travel Deals | Bon Voyagers`,
+    description,
   }
 }
 
@@ -80,80 +81,55 @@ export default async function DestinationPage({
 }) {
   const { slug } = await params
   const destination = await getDestinationBySlug(slug)
+  if (!destination) notFound()
 
-  const title = destination?.title?.rendered || titleFromSlug(slug)
-  const description =
-    destination?.excerpt?.rendered?.replace(/<[^>]*>/g, '').trim() || ''
-  const heroImage =
-    destination?._embedded?.['wp:featuredmedia']?.[0]?.source_url ?? null
-
+  const title = destination.title?.rendered || ''
+  const excerpt = (destination.excerpt?.rendered || '').replace(/<[^>]*>/g, '').trim()
+  const destinationId = destination.id
   const categoryId = getCategoryId(slug, title)
-  const rawPackages = categoryId
-    ? await getPackages({ category: categoryId, perPage: 20 })
-    : await getPackages({ search: title, perPage: 20 })
-  const packages = rawPackages.map((p) => mapProduct(p))
 
-  const waText = encodeURIComponent(`Hi I am interested in ${title} packages`)
+  const [galleryImages, rawPackages] = await Promise.all([
+    getDestinationGallery(destinationId),
+    categoryId
+      ? getPackages({ category: categoryId, perPage: 20 })
+      : getPackages({ search: title, perPage: 20 }),
+  ])
+
+  const packages = rawPackages.map((p) => mapProduct(p))
+  const waLink = `https://wa.me/919836755550?text=Hi%20Bon%20Voyagers%20%F0%9F%91%8B%0A%0AI'm%20interested%20in%20planning%20a%20trip%20to%20*${encodeURIComponent(title)}*`
+  const destinationDetails = (destination.acf?.destination_details as string | undefined) || ''
+  const hasDetails = Boolean(destinationDetails) && destinationDetails !== 'No Details Available'
 
   return (
-    <main>
+    <>
+      {/* 1. Hero Carousel */}
+      <DestinationHeroCarousel images={galleryImages} title={title} excerpt={excerpt} />
 
-      {/* ── Hero ── */}
-      <div
-        className="relative w-full overflow-hidden"
-        style={{ height: '65vh', minHeight: '400px', background: '#0D1A0F' }}
-      >
-        {heroImage && (
-          <Image
-            src={heroImage}
-            alt={title}
-            fill
-            priority
-            sizes="100vw"
-            style={{ objectFit: 'cover', objectPosition: 'center' }}
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-amber-900/20 to-transparent" />
+      {/* 2. Trust Strip */}
+      <DestinationTrustStrip />
 
-        <div className="absolute bottom-0 left-0 right-0 z-10 p-8 md:p-16">
-          <p className="uppercase tracking-widest text-sm mb-2" style={{ color: '#C8A96A' }}>
-            DESTINATION GUIDE
-          </p>
-          <h1
-            className="font-bold text-white mb-4"
-            style={{
-              fontFamily: 'var(--font-display, "Playfair Display", serif)',
-              fontSize: 'clamp(2rem, 5vw, 3.5rem)',
-            }}
+      {/* 3. Packages Section */}
+      <section id="packages" className="max-w-6xl mx-auto px-4 md:px-6 lg:px-12 py-12 md:py-20">
+        <div className="mb-10 text-center">
+          <div className="inline-flex items-center rounded-full bg-[#1E6B2E]/10 px-4 py-1.5 text-xs font-semibold text-[#1E6B2E] mb-4">
+            Bon Voyagers Curated Experiences
+          </div>
+          <h2
+            className="font-bold text-gray-900 leading-tight"
+            style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.75rem, 4vw, 3rem)' }}
           >
-            {title}
-          </h1>
-          <div className="w-16 h-1 mb-4" style={{ background: '#C8A96A' }} />
-          {description && (
-            <p className="text-white/80 text-base md:text-lg max-w-2xl line-clamp-3">
-              {description}
+            Best {title} Tour Packages
+          </h2>
+          <div className="w-12 h-[2px] bg-[#C8A96A] mx-auto mt-4 mb-6" />
+          {excerpt && (
+            <p className="max-w-3xl mx-auto text-gray-600 text-base md:text-lg leading-8">
+              {excerpt.slice(0, 200)}
             </p>
           )}
         </div>
-      </div>
-
-      {/* ── Packages grid ── */}
-      <section className="max-w-7xl mx-auto px-4 py-14">
-        <h2
-          className="font-bold mb-2"
-          style={{
-            fontFamily: 'var(--font-display, "Playfair Display", serif)',
-            fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
-            color: '#1E6B2E',
-          }}
-        >
-          Explore {title} Packages
-        </h2>
-        <div className="w-12 h-1 mb-8" style={{ background: '#C8A96A' }} />
 
         {packages.length === 0 ? (
-          <p className="text-gray-500 text-center py-12">
+          <p className="text-center text-gray-500 py-16">
             No packages found for this destination. Please check back soon.
           </p>
         ) : (
@@ -165,31 +141,39 @@ export default async function DestinationPage({
         )}
       </section>
 
-      {/* ── CTA strip ── */}
-      <section className="py-12 px-4 text-center" style={{ background: '#1E6B2E' }}>
-        <h3
-          className="font-bold text-white mb-3"
-          style={{
-            fontFamily: 'var(--font-display, "Playfair Display", serif)',
-            fontSize: 'clamp(1.4rem, 3vw, 1.875rem)',
-          }}
-        >
-          Plan Your {title} Trip
-        </h3>
-        <p className="text-white/80 mb-6">
-          Talk to our travel experts and get a customised itinerary
-        </p>
-        <Link
-          href={`https://wa.me/919836755550?text=${waText}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 font-semibold px-8 py-3 rounded-full transition-colors duration-200 hover:bg-amber-500"
-          style={{ background: '#F5A623', color: '#FFFFFF' }}
-        >
-          Chat on WhatsApp
-        </Link>
-      </section>
+      {/* 4. Destination Details */}
+      {hasDetails && (
+        <section className="max-w-4xl mx-auto px-6 py-10">
+          <h2
+            className="font-bold text-[#1E6B2E] mb-6"
+            style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.5rem, 3vw, 1.875rem)' }}
+          >
+            About {title}
+          </h2>
+          <div
+            className="text-gray-700 leading-8 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:text-gray-900 [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:font-bold [&_h3]:text-gray-900 [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mb-4 [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:mb-4 [&_li]:mb-1 [&_a]:text-[#1E6B2E] [&_strong]:font-semibold [&_strong]:text-gray-900"
+            dangerouslySetInnerHTML={{ __html: destinationDetails }}
+          />
+        </section>
+      )}
 
-    </main>
+      {/* 5. Lead Magnet */}
+      <DestinationLeadMagnet destination={title} />
+
+      {/* 6. Photo Gallery */}
+      <DestinationPhotoGallery images={galleryImages} destination={title} />
+
+      {/* 7. Why Visit */}
+      <WhyVisitSection destination={title} />
+
+      {/* 8. Final CTA */}
+      <DestinationFinalCTA destination={title} />
+
+      {/* 9. WhatsApp Strip */}
+      <DestinationWhatsAppStrip destination={title} />
+
+      {/* 10. Mobile Bottom Bar */}
+      <DestinationMobileBar destination={title} waLink={waLink} />
+    </>
   )
 }
