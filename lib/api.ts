@@ -50,6 +50,12 @@ export interface Destination {
   acf?: Record<string, unknown>
 }
 
+export interface CollectionACFSource {
+  package_source_type?: string
+  package_category?: Array<{ term_id: number } | number>
+  package_tag?: Array<{ term_id: number } | number>
+}
+
 export interface Collection {
   id: number
   slug: string
@@ -57,12 +63,21 @@ export interface Collection {
   description: string
   image?: { id: number; src: string; alt: string }
   acf?: Record<string, unknown>
+  collection_name: string
+  collection_slug: string
+  collection_description: string
+  collection_type?: string
+  collection_priority?: number
+  is_active?: boolean | string
+  direct_package_collection?: CollectionACFSource
+  destinations?: Array<{ package_category?: Array<{ term_id: number } | number> }>
 }
 
 export interface GetPackagesParams {
   page?: number
   perPage?: number
   category?: string | number
+  tag?: number
   onSale?: boolean
   search?: string
 }
@@ -101,31 +116,41 @@ interface RawWPPost {
   id: number
   slug: string
   title: { rendered: string }
-  excerpt: { rendered: string }
+  excerpt?: { rendered: string }
   content: { rendered: string }
   acf?: Record<string, unknown>
 }
 
 function normaliseCollection(raw: RawWPPost): Collection {
+  const acf = (raw.acf ?? {}) as Record<string, unknown>
   return {
     id: raw.id,
     slug: raw.slug,
     name: raw.title.rendered,
-    description: raw.excerpt.rendered,
-    acf: raw.acf,
+    description: raw.excerpt?.rendered ?? '',
+    acf,
+    collection_name:        (acf.collection_name as string)        ?? raw.title.rendered,
+    collection_slug:        (acf.collection_slug as string)        ?? raw.slug,
+    collection_description: (acf.collection_description as string) ?? '',
+    collection_type:        acf.collection_type  as string | undefined,
+    collection_priority:    acf.collection_priority as number | undefined,
+    is_active:              acf.is_active as boolean | string | undefined,
+    direct_package_collection: acf.direct_package_collection as Collection['direct_package_collection'],
+    destinations:           acf.destinations as Collection['destinations'],
   }
 }
 
 // ── Packages ───────────────────────────────────────────────────────────────────
 
 export async function getPackages(params: GetPackagesParams = {}): Promise<WCProduct[]> {
-  const { page = 1, perPage = 12, category, onSale, search } = params
+  const { page = 1, perPage = 12, category, tag, onSale, search } = params
   const qs = new URLSearchParams({
     page: String(page),
     per_page: String(perPage),
     status: 'publish',
   })
   if (category) qs.set('category', String(category))
+  if (tag)      qs.set('tag',      String(tag))
   if (onSale)   qs.set('on_sale', 'true')
   if (search)   qs.set('search', search)
   qs.set('_fields', 'id,name,slug,price,regular_price,sale_price,on_sale,average_rating,rating_count,images,categories,meta_data')
@@ -183,14 +208,25 @@ export async function getDestinationBySlug(slug: string): Promise<Destination | 
 
 export async function getCollections(): Promise<Collection[]> {
   const raw = await wpFetch<RawWPPost[]>(
-    '/wp-json/wp/v2/collection?per_page=100&acf_format=standard',
+    '/wp-json/wp/v2/collections?per_page=100',
   )
   return raw.map(normaliseCollection)
 }
 
 export async function getCollectionBySlug(slug: string): Promise<Collection | null> {
   const raw = await wpFetch<RawWPPost[]>(
-    `/wp-json/wp/v2/collection?slug=${encodeURIComponent(slug)}&acf_format=standard`,
+    `/wp-json/wp/v2/collections?slug=${encodeURIComponent(slug)}`,
   )
   return raw[0] ? normaliseCollection(raw[0]) : null
+}
+
+export async function getActiveCollections(): Promise<Collection[]> {
+  try {
+    const all = await getCollections()
+    return all
+      .filter(c => c.is_active === true || c.is_active === 'true')
+      .sort((a, b) => Number(a.collection_priority ?? 99) - Number(b.collection_priority ?? 99))
+  } catch {
+    return []
+  }
 }

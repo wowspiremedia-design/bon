@@ -48,9 +48,9 @@ export default async function Home() {
     <>
       <HeroCarousel />
       <TrustStrip />
+      <CollectionsSection />
       <FeaturedPackagesClient packages={packages} tabs={TAB_LABELS} />
       <PopularDestinations />
-      <CollectionsSection />
       <CTASection />
     </>
   )
