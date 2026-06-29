@@ -83,75 +83,21 @@ export default function CollectionRow({
             </Link>
           </div>
 
-          {/* Scroll arrows */}
-          <div className="flex items-center gap-2 flex-shrink-0 mt-1">
-            <button
-              aria-label="Scroll left"
-              onClick={() => scroll('left')}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                border: 'none',
-                background: canLeft ? '#1E6B2E' : '#E5E7EB',
-                color: canLeft ? '#FFFFFF' : '#9CA3AF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: canLeft ? 'pointer' : 'default',
-                transition: 'all 0.2s',
-                fontSize: '18px',
-                lineHeight: 1,
-              }}
-            >
-              ‹
-            </button>
-            <button
-              aria-label="Scroll right"
-              onClick={() => scroll('right')}
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: '50%',
-                border: 'none',
-                background: canRight ? '#1E6B2E' : '#E5E7EB',
-                color: canRight ? '#FFFFFF' : '#9CA3AF',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: canRight ? 'pointer' : 'default',
-                transition: 'all 0.2s',
-                fontSize: '18px',
-                lineHeight: 1,
-              }}
-            >
-              ›
-            </button>
-          </div>
         </div>
 
         {/* ── Scrollable cards track ── */}
-        <div className="relative">
-          {/* Left fade */}
-          <div
-            className="pointer-events-none absolute left-0 top-0 bottom-0 z-10"
-            style={{
-              width: 48,
-              background: `linear-gradient(to right, ${bgColor}, transparent)`,
-              opacity: canLeft ? 1 : 0,
-              transition: 'opacity 0.2s',
-            }}
-          />
-          {/* Right fade */}
-          <div
-            className="pointer-events-none absolute right-0 top-0 bottom-0 z-10"
-            style={{
-              width: 48,
-              background: `linear-gradient(to left, ${bgColor}, transparent)`,
-              opacity: canRight ? 1 : 0,
-              transition: 'opacity 0.2s',
-            }}
-          />
+        <div className="relative flex items-center px-6">
+
+          {/* Left arrow */}
+          <button
+            onClick={() => scroll('left')}
+            aria-label="Scroll left"
+            className="absolute left-0 z-10 w-9 h-9 rounded-full bg-white shadow-md border border-gray-200 hover:bg-[#1E6B2E] hover:text-white hover:border-[#1E6B2E] flex items-center justify-center transition-all duration-300"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
 
           <div
             ref={scrollRef}
@@ -167,12 +113,24 @@ export default function CollectionRow({
             {packages.map((pkg) => (
               <div
                 key={pkg.id}
-                style={{ width: 'clamp(260px, 28vw, 320px)', flexShrink: 0 }}
+                style={{ width: 'clamp(220px, 72vw, 320px)', flexShrink: 0 }}
               >
                 <PackageCard {...pkg} />
               </div>
             ))}
           </div>
+
+          {/* Right arrow */}
+          <button
+            onClick={() => scroll('right')}
+            aria-label="Scroll right"
+            className="absolute right-0 z-10 w-9 h-9 rounded-full bg-white shadow-md border border-gray-200 hover:bg-[#1E6B2E] hover:text-white hover:border-[#1E6B2E] flex items-center justify-center transition-all duration-300"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M9 18l6-6-6-6" />
+            </svg>
+          </button>
+
         </div>
 
       </div>

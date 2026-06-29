@@ -85,11 +85,10 @@ export default async function DestinationPage({
 
   const title = destination.title?.rendered || ''
   const excerpt = (destination.excerpt?.rendered || '').replace(/<[^>]*>/g, '').trim()
-  const destinationId = destination.id
   const categoryId = getCategoryId(slug, title)
 
   const [galleryImages, rawPackages] = await Promise.all([
-    getDestinationGallery(destinationId),
+    getDestinationGallery(destination.place_gallery_ids ?? []),
     categoryId
       ? getPackages({ category: categoryId, perPage: 20 })
       : getPackages({ search: title, perPage: 20 }),
