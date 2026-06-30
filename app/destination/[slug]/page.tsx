@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getDestinationBySlug, getDestinationGallery, getAllPackages } from '@/lib/api'
-import { mapProduct } from '@/lib/mapProduct'
+import { getDestinationBySlug, getDestinationGallery, getAllPackagesLite } from '@/lib/api'
 import DestinationPackagesSection from '@/components/destination/DestinationPackagesSection'
 import DestinationHeroCarousel from '@/components/destination/DestinationHeroCarousel'
 import DestinationTrustStrip from '@/components/destination/DestinationTrustStrip'
@@ -87,14 +86,13 @@ export default async function DestinationPage({
   const excerpt = (destination.excerpt?.rendered || '').replace(/<[^>]*>/g, '').trim()
   const categoryId = getCategoryId(slug, title)
 
-  const [galleryImages, rawPackages] = await Promise.all([
+  const [galleryImages, packagesLite] = await Promise.all([
     getDestinationGallery(destination.place_gallery_ids ?? []),
     categoryId
-      ? getAllPackages({ category: categoryId })
-      : getAllPackages({ search: title }),
+      ? getAllPackagesLite({ category: categoryId })
+      : getAllPackagesLite({ search: title }),
   ])
 
-  const packages = rawPackages.map((p) => mapProduct(p))
   const waLink = `https://wa.me/919836755550?text=Hi%20Bon%20Voyagers%20%F0%9F%91%8B%0A%0AI'm%20interested%20in%20planning%20a%20trip%20to%20*${encodeURIComponent(title)}*`
   const destinationDetails = (destination.acf?.destination_details as string | undefined) || ''
   const hasDetails = Boolean(destinationDetails) && destinationDetails !== 'No Details Available'
@@ -125,12 +123,12 @@ export default async function DestinationPage({
 
       {/* 4. Packages */}
       <section id="packages" className="max-w-6xl mx-auto px-4 md:px-6 lg:px-12 py-12 md:py-20">
-        {packages.length === 0 ? (
+        {packagesLite.length === 0 ? (
           <p className="text-center text-gray-500 py-16">
             No packages found for this destination. Please check back soon.
           </p>
         ) : (
-          <DestinationPackagesSection packages={packages} />
+          <DestinationPackagesSection packagesLite={packagesLite} />
         )}
       </section>
 

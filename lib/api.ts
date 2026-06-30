@@ -87,6 +87,13 @@ export interface GetPackagesParams {
   search?: string
 }
 
+export interface PackageLite {
+  id: number
+  price: number
+  regularPrice: number
+  duration: string
+}
+
 // ── Auth ───────────────────────────────────────────────────────────────────────
 
 function wcAuthHeader(): string {
@@ -173,6 +180,60 @@ export async function getAllPackages(
     if (batch.length < 100) break
   }
   return all
+}
+
+export async function getAllPackagesLite(
+  params: Omit<GetPackagesParams, 'page' | 'perPage'> = {},
+): Promise<PackageLite[]> {
+  const { category, tag, onSale, search } = params
+  const all: PackageLite[] = []
+  const MAX_PAGES = 20
+
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const qs = new URLSearchParams({
+      page: String(page),
+      per_page: '100',
+      status: 'publish',
+      _fields: 'id,price,regular_price,meta_data',
+    })
+    if (category) qs.set('category', String(category))
+    if (tag)      qs.set('tag',      String(tag))
+    if (onSale)   qs.set('on_sale', 'true')
+    if (search)   qs.set('search', search)
+
+    const batch = await wcFetch<Array<{
+      id: number
+      price: string
+      regular_price: string
+      meta_data: Array<{ id: number; key: string; value: unknown }>
+    }>>(`/wp-json/wc/v3/products?${qs.toString()}`)
+
+    for (const p of batch) {
+      const durationMeta = p.meta_data.find((m) => m.key === '_package_days_duration')
+      const duration = typeof durationMeta?.value === 'string' ? durationMeta.value : ''
+      all.push({
+        id: p.id,
+        price: parseFloat(p.price) || 0,
+        regularPrice: parseFloat(p.regular_price) || 0,
+        duration,
+      })
+    }
+
+    if (batch.length < 100) break
+  }
+
+  return all
+}
+
+export async function getPackagesByIds(ids: number[]): Promise<WCProduct[]> {
+  if (ids.length === 0) return []
+  const qs = new URLSearchParams({
+    include: ids.join(','),
+    per_page: String(ids.length),
+    status: 'publish',
+    _fields: 'id,name,slug,price,regular_price,sale_price,on_sale,average_rating,rating_count,images,categories,meta_data',
+  })
+  return wcFetch<WCProduct[]>(`/wp-json/wc/v3/products?${qs.toString()}`)
 }
 
 export async function getPackageBySlug(slug: string): Promise<WCProduct | null> {

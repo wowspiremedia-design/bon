@@ -1,10 +1,24 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import PackageCard, { type PackageCardProps } from '@/components/shared/PackageCard'
+import { type PackageLite } from '@/lib/api'
 
 const ITEMS_PER_PAGE = 15
 const fmt = (n: number) => '₹' + Math.round(n).toLocaleString('en-IN')
+
+const LOADING_MESSAGES = [
+  'Curating your perfect getaway...',
+  'Mapping out the best routes for you...',
+  'Packing in the finest details...',
+  'Checking the best stays along your journey...',
+  'Bringing your travel plans together...',
+  'Sourcing the finest experiences for you...',
+  'Charting your next adventure...',
+  'Arranging the perfect itinerary...',
+  'Lining up the best options for your trip...',
+  'Preparing something special for you...',
+]
 
 interface PriceBand {
   label: string
@@ -12,7 +26,7 @@ interface PriceBand {
   filterMax: number
 }
 
-function computeBands(packages: PackageCardProps[]): PriceBand[] {
+function computeBands(packages: PackageLite[]): PriceBand[] {
   if (packages.length === 0) return []
   const prices = packages.map((p) => p.price)
   const min = Math.min(...prices)
@@ -39,19 +53,22 @@ function inBand(price: number, band: PriceBand, bandIndex: number): boolean {
 }
 
 interface Props {
-  packages: PackageCardProps[]
+  packagesLite: PackageLite[]
 }
 
-export default function DestinationPackagesSection({ packages }: Props) {
+export default function DestinationPackagesSection({ packagesLite }: Props) {
   const [page, setPage] = useState(1)
   const [sort, setSort] = useState<'' | 'low-high' | 'high-low'>('')
   const [checkedBands, setCheckedBands] = useState<number[]>([])
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [fullDetails, setFullDetails] = useState<PackageCardProps[]>([])
+  const [loading, setLoading] = useState(true)
+  const [loadingMessage, setLoadingMessage] = useState(LOADING_MESSAGES[0])
 
-  const bands = useMemo(() => computeBands(packages), [packages])
+  const bands = useMemo(() => computeBands(packagesLite), [packagesLite])
 
   const filtered = useMemo(() => {
-    let result = [...packages]
+    let result = [...packagesLite]
     if (checkedBands.length > 0) {
       result = result.filter((pkg) =>
         checkedBands.some((bi) => inBand(pkg.price, bands[bi], bi))
@@ -60,10 +77,46 @@ export default function DestinationPackagesSection({ packages }: Props) {
     if (sort === 'low-high') result.sort((a, b) => a.price - b.price)
     else if (sort === 'high-low') result.sort((a, b) => b.price - a.price)
     return result
-  }, [packages, checkedBands, sort, bands])
+  }, [packagesLite, checkedBands, sort, bands])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE))
   const pageItems = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+  const idsKey = pageItems.map((p) => p.id).join(',')
+
+  useEffect(() => {
+    if (idsKey === '') {
+      setFullDetails([])
+      setLoading(false)
+      return
+    }
+
+    const ids = idsKey.split(',').map(Number)
+    setLoadingMessage(LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)])
+    setLoading(true)
+
+    let cancelled = false
+
+    fetch(`/api/packages-by-ids?ids=${idsKey}`)
+      .then((res) => res.json())
+      .then((data: PackageCardProps[]) => {
+        if (cancelled) return
+        const idOrder = new Map(ids.map((id, idx) => [id, idx]))
+        const reordered = [...data].sort(
+          (a, b) => (idOrder.get(a.id) ?? 0) - (idOrder.get(b.id) ?? 0),
+        )
+        setFullDetails(reordered)
+        setLoading(false)
+      })
+      .catch(() => {
+        if (cancelled) return
+        setFullDetails([])
+        setLoading(false)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [idsKey])
 
   function toggleBand(i: number) {
     setCheckedBands((prev) =>
@@ -250,11 +303,33 @@ export default function DestinationPackagesSection({ packages }: Props) {
         </p>
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {pageItems.map((pkg) => (
-              <PackageCard key={pkg.id} {...pkg} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center min-h-[400px]">
+              <svg
+                className="animate-spin"
+                width="48"
+                height="48"
+                viewBox="0 0 48 48"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle cx="24" cy="24" r="20" stroke="#E5E7EB" strokeWidth="4" />
+                <path
+                  d="M24 4 a20 20 0 0 1 20 20"
+                  stroke="#1E6B2E"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                />
+              </svg>
+              <p className="mt-4 text-sm" style={{ color: '#6B7280' }}>{loadingMessage}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {fullDetails.map((pkg) => (
+                <PackageCard key={pkg.id} {...pkg} />
+              ))}
+            </div>
+          )}
 
           {totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-10 flex-wrap">
