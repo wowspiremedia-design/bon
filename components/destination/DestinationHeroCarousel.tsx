@@ -65,9 +65,11 @@ export default function DestinationHeroCarousel({ images, title, excerpt }: Prop
         </h1>
         <div className="w-16 h-[2px] bg-[#C8A96A] mb-6" />
         {excerpt && (
-          <p className="text-white/75 text-sm md:text-base max-w-2xl line-clamp-2 mb-8">
-            {excerpt}
-          </p>
+          <div className="inline-block max-w-2xl mb-8 rounded-xl bg-black/40 px-4 py-3">
+            <p className="text-white/75 text-sm md:text-base line-clamp-2">
+              {excerpt}
+            </p>
+          </div>
         )}
         <div className="flex flex-wrap gap-3">
           <a

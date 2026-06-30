@@ -38,7 +38,11 @@ export default function CollectionRow({
   function scroll(dir: 'left' | 'right') {
     const el = scrollRef.current
     if (!el) return
-    el.scrollBy({ left: dir === 'left' ? -340 : 340, behavior: 'smooth' })
+    const firstCard = el.firstElementChild as HTMLElement | null
+    const cardWidth = firstCard ? firstCard.offsetWidth : 320
+    const gap = 20
+    const distance = cardWidth + gap
+    el.scrollBy({ left: dir === 'left' ? -distance : distance, behavior: 'smooth' })
     setTimeout(updateArrows, 350)
   }
 
@@ -108,12 +112,14 @@ export default function CollectionRow({
               overflowX: 'auto',
               scrollbarWidth: 'none',
               paddingBottom: '4px',
+              scrollSnapType: 'x mandatory',
+              WebkitOverflowScrolling: 'touch',
             }}
           >
             {packages.map((pkg) => (
               <div
                 key={pkg.id}
-                style={{ width: 'clamp(220px, 72vw, 320px)', flexShrink: 0 }}
+                style={{ width: 'clamp(220px, 72vw, 320px)', flexShrink: 0, scrollSnapAlign: 'start' }}
               >
                 <PackageCard {...pkg} />
               </div>

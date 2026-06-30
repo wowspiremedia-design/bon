@@ -48,6 +48,7 @@ export interface Destination {
   content: { rendered: string }
   images?: WCProductImage[]
   acf?: Record<string, unknown>
+  place_entries?: number[]
   place_gallery_ids?: number[]
   _embedded?: {
     'wp:featuredmedia'?: Array<{ source_url: string }>
@@ -159,6 +160,19 @@ export async function getPackages(params: GetPackagesParams = {}): Promise<WCPro
   if (search)   qs.set('search', search)
   qs.set('_fields', 'id,name,slug,price,regular_price,sale_price,on_sale,average_rating,rating_count,images,categories,meta_data')
   return wcFetch<WCProduct[]>(`/wp-json/wc/v3/products?${qs.toString()}`)
+}
+
+export async function getAllPackages(
+  params: Omit<GetPackagesParams, 'page' | 'perPage'> = {},
+): Promise<WCProduct[]> {
+  const all: WCProduct[] = []
+  const MAX_PAGES = 20
+  for (let page = 1; page <= MAX_PAGES; page++) {
+    const batch = await getPackages({ ...params, page, perPage: 100 })
+    all.push(...batch)
+    if (batch.length < 100) break
+  }
+  return all
 }
 
 export async function getPackageBySlug(slug: string): Promise<WCProduct | null> {

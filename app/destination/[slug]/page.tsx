@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getDestinationBySlug, getDestinationGallery, getPackages } from '@/lib/api'
+import { getDestinationBySlug, getDestinationGallery, getAllPackages } from '@/lib/api'
 import { mapProduct } from '@/lib/mapProduct'
-import PackageCard from '@/components/shared/PackageCard'
+import DestinationPackagesSection from '@/components/destination/DestinationPackagesSection'
 import DestinationHeroCarousel from '@/components/destination/DestinationHeroCarousel'
 import DestinationTrustStrip from '@/components/destination/DestinationTrustStrip'
 import DestinationLeadMagnet from '@/components/destination/DestinationLeadMagnet'
@@ -90,8 +90,8 @@ export default async function DestinationPage({
   const [galleryImages, rawPackages] = await Promise.all([
     getDestinationGallery(destination.place_gallery_ids ?? []),
     categoryId
-      ? getPackages({ category: categoryId, perPage: 20 })
-      : getPackages({ search: title, perPage: 20 }),
+      ? getAllPackages({ category: categoryId })
+      : getAllPackages({ search: title }),
   ])
 
   const packages = rawPackages.map((p) => mapProduct(p))
@@ -105,42 +105,9 @@ export default async function DestinationPage({
       <DestinationHeroCarousel images={galleryImages} title={title} excerpt={excerpt} />
 
       {/* 2. Trust Strip */}
-      <DestinationTrustStrip />
+      <DestinationTrustStrip slug={slug} />
 
-      {/* 3. Packages Section */}
-      <section id="packages" className="max-w-6xl mx-auto px-4 md:px-6 lg:px-12 py-12 md:py-20">
-        <div className="mb-10 text-center">
-          <div className="inline-flex items-center rounded-full bg-[#1E6B2E]/10 px-4 py-1.5 text-xs font-semibold text-[#1E6B2E] mb-4">
-            Bon Voyagers Curated Experiences
-          </div>
-          <h2
-            className="font-bold text-gray-900 leading-tight"
-            style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.75rem, 4vw, 3rem)' }}
-          >
-            Best {title} Tour Packages
-          </h2>
-          <div className="w-12 h-[2px] bg-[#C8A96A] mx-auto mt-4 mb-6" />
-          {excerpt && (
-            <p className="max-w-3xl mx-auto text-gray-600 text-base md:text-lg leading-8">
-              {excerpt.slice(0, 200)}
-            </p>
-          )}
-        </div>
-
-        {packages.length === 0 ? (
-          <p className="text-center text-gray-500 py-16">
-            No packages found for this destination. Please check back soon.
-          </p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {packages.map((pkg) => (
-              <PackageCard key={pkg.id} {...pkg} />
-            ))}
-          </div>
-        )}
-      </section>
-
-      {/* 4. Destination Details */}
+      {/* 3. Destination Details */}
       {hasDetails && (
         <section className="max-w-4xl mx-auto px-6 py-10">
           <h2
@@ -156,11 +123,22 @@ export default async function DestinationPage({
         </section>
       )}
 
-      {/* 5. Lead Magnet */}
-      <DestinationLeadMagnet destination={title} />
+      {/* 4. Packages */}
+      <section id="packages" className="max-w-6xl mx-auto px-4 md:px-6 lg:px-12 py-12 md:py-20">
+        {packages.length === 0 ? (
+          <p className="text-center text-gray-500 py-16">
+            No packages found for this destination. Please check back soon.
+          </p>
+        ) : (
+          <DestinationPackagesSection packages={packages} />
+        )}
+      </section>
 
-      {/* 6. Photo Gallery */}
+      {/* 5. Photo Gallery */}
       <DestinationPhotoGallery images={galleryImages} destination={title} />
+
+      {/* 6. Lead Magnet */}
+      <DestinationLeadMagnet destination={title} />
 
       {/* 7. Why Visit */}
       <WhyVisitSection destination={title} />

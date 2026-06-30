@@ -1,7 +1,6 @@
-import Image from 'next/image'
-import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getDestinations } from '@/lib/api'
+import DestinationsGrid from '@/components/destinations/DestinationsGrid'
 
 export const metadata: Metadata = {
   title: 'All Destinations | Bon Voyagers',
@@ -11,10 +10,22 @@ export const metadata: Metadata = {
 export default async function DestinationsPage() {
   const destinations = await getDestinations()
 
+  const items = destinations.map((destination) => ({
+    id: destination.id,
+    slug: destination.slug,
+    title: destination.title.rendered,
+    imageSrc:
+      destination._embedded?.['wp:featuredmedia']?.[0]?.source_url ||
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (destination.images as any)?.hero?.full ||
+      null,
+    place_entries: destination.place_entries,
+  }))
+
   return (
     <>
       {/* ── Page header ── */}
-      <section className="bg-white py-14 md:py-20 text-center">
+      <section className="bg-white py-10 md:py-16 px-6 md:px-10 text-center">
         <h1
           className="font-bold text-[#1A1A1A] mb-4"
           style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2rem, 5vw, 3rem)' }}
@@ -27,7 +38,7 @@ export default async function DestinationsPage() {
       </section>
 
       {/* ── Destinations grid ── */}
-      <section style={{ background: '#F9F7F4', padding: '48px 0 64px' }}>
+      <section style={{ background: '#F9F7F4', padding: 'clamp(24px, 5vw, 48px) 0 64px' }}>
         <div
           className="mx-auto"
           style={{
@@ -35,61 +46,7 @@ export default async function DestinationsPage() {
             padding: '0 clamp(16px, 4vw, 40px)',
           }}
         >
-          {destinations.length === 0 ? (
-            <p className="text-center text-gray-500 py-20 text-base">
-              No destinations found.
-            </p>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {destinations.map((destination) => {
-                const title = destination.title.rendered
-                const slug = destination.slug
-                const imageSrc =
-                  destination._embedded?.['wp:featuredmedia']?.[0]?.source_url ||
-                  (destination.images as any)?.hero?.full ||
-                  null
-
-                return (
-                  <Link
-                    key={destination.id}
-                    href={`/destination/${slug}`}
-                    className="group block rounded-2xl overflow-hidden bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-                  >
-                    {/* Image */}
-                    <div className="relative h-[200px]">
-                      {imageSrc ? (
-                        <Image
-                          src={imageSrc}
-                          alt={title}
-                          fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        />
-                      ) : (
-                        <div className="absolute inset-0" style={{ background: '#1E6B2E' }} />
-                      )}
-                    </div>
-
-                    {/* Card body */}
-                    <div style={{ padding: '16px' }}>
-                      <p
-                        className="font-semibold text-[#1A1A1A] leading-snug mb-2"
-                        style={{ fontFamily: "'Playfair Display', serif", fontSize: '15px' }}
-                      >
-                        {title}
-                      </p>
-                      <span
-                        className="font-semibold"
-                        style={{ color: '#1E6B2E', fontSize: '13px' }}
-                      >
-                        Explore &rarr;
-                      </span>
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
+          <DestinationsGrid destinations={items} />
         </div>
       </section>
     </>
