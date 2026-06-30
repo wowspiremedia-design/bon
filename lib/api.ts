@@ -194,7 +194,7 @@ export async function getAllPackagesLite(
       page: String(page),
       per_page: '100',
       status: 'publish',
-      _fields: 'id,price,regular_price,meta_data',
+      _fields: 'id,price,regular_price,package_days_duration',
     })
     if (category) qs.set('category', String(category))
     if (tag)      qs.set('tag',      String(tag))
@@ -205,12 +205,11 @@ export async function getAllPackagesLite(
       id: number
       price: string
       regular_price: string
-      meta_data: Array<{ id: number; key: string; value: unknown }>
+      package_days_duration: string
     }>>(`/wp-json/wc/v3/products?${qs.toString()}`)
 
     for (const p of batch) {
-      const durationMeta = p.meta_data.find((m) => m.key === '_package_days_duration')
-      const duration = typeof durationMeta?.value === 'string' ? durationMeta.value : ''
+      const duration = typeof p.package_days_duration === 'string' ? p.package_days_duration : ''
       all.push({
         id: p.id,
         price: parseFloat(p.price) || 0,
