@@ -96,7 +96,7 @@ export interface PackageLite {
 
 // ── Auth ───────────────────────────────────────────────────────────────────────
 
-function wcAuthHeader(): string {
+export function wcAuthHeader(): string {
   const ck = process.env.WC_CONSUMER_KEY
   const cs = process.env.WC_CONSUMER_SECRET
   if (!ck || !cs) throw new Error('WooCommerce credentials are not configured')
