@@ -62,7 +62,7 @@ export default async function HotelPage({
 
   const title = decodeHtmlEntities(hotel.title)
 
-  const hasAmenitiesSection = hotel.amenities.length > 0 || hotel.foodType.length > 0 || hotel.viewType.length > 0
+  const hasAmenitiesSection = hotel.amenities.length > 0 || hotel.foodType.length > 0
   const hasRoomsSection = hotel.roomPricing.length > 0
   const hasSightseeingSection = Boolean(hotel.sightseeing)
 
@@ -102,16 +102,17 @@ export default async function HotelPage({
 
       {/* ── Body ── */}
       <div className="mx-auto" style={{ maxWidth: '1280px', padding: 'clamp(24px, 4vw, 48px) clamp(16px, 4vw, 40px) 80px' }}>
+
+        {/* 1. Image gallery, spans full width above the two-column split */}
+        <HotelGallery images={hotel.gallery.length > 0 ? hotel.gallery : (hotel.image ? [hotel.image] : [])} title={title} />
+
+        {/* Sticky scroll-spy section nav, becomes sticky below the header once scrolled past the gallery */}
+        <SectionScrollSpy sections={sections} />
+
         <div className="flex flex-col lg:flex-row gap-10">
 
           {/* ── Left column (content) ── */}
           <div style={{ flex: '1 1 0', minWidth: 0 }}>
-
-            {/* 1. Image gallery */}
-            <HotelGallery images={hotel.gallery.length > 0 ? hotel.gallery : (hotel.image ? [hotel.image] : [])} title={title} />
-
-            {/* Sticky scroll-spy section nav, becomes sticky below the header once scrolled past the gallery */}
-            <SectionScrollSpy sections={sections} />
 
             {/* 2. Title, badges, location, address */}
             <div style={{ marginTop: '24px', marginBottom: '32px' }}>
@@ -132,6 +133,9 @@ export default async function HotelPage({
               <div className="flex flex-wrap gap-2" style={{ marginBottom: '14px' }}>
                 {hotel.propertyCategory && <Badge label={hotel.propertyCategory} />}
                 {hotel.propertyType && <Badge label={hotel.propertyType} />}
+                {hotel.viewType.map((view) => (
+                  <Badge key={view} label={view} icon={<AmenityIcon name={view} size={12} />} />
+                ))}
               </div>
 
               {hotel.location && (
@@ -158,7 +162,7 @@ export default async function HotelPage({
               </Section>
             )}
 
-            {/* 4. Amenities, Food Type, View Type */}
+            {/* 4. Amenities, Food Type */}
             {hasAmenitiesSection && (
               <Section id="section-amenities" title="Amenities & Facilities">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -166,10 +170,7 @@ export default async function HotelPage({
                     <IconLabelGroup title="Amenities" items={hotel.amenities} useAmenityIcons />
                   )}
                   {hotel.foodType.length > 0 && (
-                    <IconLabelGroup title="Food Type" items={hotel.foodType} />
-                  )}
-                  {hotel.viewType.length > 0 && (
-                    <IconLabelGroup title="View Type" items={hotel.viewType} />
+                    <IconLabelGroup title="Food Type" items={hotel.foodType} useAmenityIcons />
                   )}
                 </div>
               </Section>
@@ -271,10 +272,13 @@ export default async function HotelPage({
               {hotel.startingPrice !== null && (
                 <div style={{ marginBottom: '20px' }}>
                   <p style={{ fontSize: '12px', color: '#888888', marginBottom: '4px' }}>Starting from</p>
-                  <p style={{ fontSize: '30px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1 }}>
-                    {fmt(hotel.startingPrice)}
-                  </p>
-                  <p style={{ fontSize: '12px', color: '#888888', marginTop: '4px' }}>per night</p>
+                  <div className="flex items-baseline gap-2">
+                    <p style={{ fontSize: '30px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1 }}>
+                      {fmt(hotel.startingPrice)}
+                    </p>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#888888' }}>+ taxes</span>
+                  </div>
+                  <p style={{ fontSize: '12px', color: '#888888', marginTop: '4px' }}>per room</p>
                 </div>
               )}
 
@@ -296,10 +300,13 @@ export default async function HotelPage({
       >
         {hotel.startingPrice !== null ? (
           <div>
-            <p style={{ fontSize: '18px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1 }}>
-              {fmt(hotel.startingPrice)}
-            </p>
-            <p style={{ fontSize: '11px', color: '#888888' }}>per night</p>
+            <div className="flex items-baseline gap-1">
+              <p style={{ fontSize: '18px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1 }}>
+                {fmt(hotel.startingPrice)}
+              </p>
+              <span style={{ fontSize: '11px', fontWeight: 600, color: '#888888' }}>+ taxes</span>
+            </div>
+            <p style={{ fontSize: '11px', color: '#888888' }}>per room</p>
           </div>
         ) : <div />}
 
@@ -345,9 +352,10 @@ function RuleRow({ label, value }: { label: string; value: string }) {
   )
 }
 
-function Badge({ label }: { label: string }) {
+function Badge({ label, icon }: { label: string; icon?: React.ReactNode }) {
   return (
     <span
+      className="flex items-center gap-1"
       style={{
         background: '#E8F5E9',
         color: '#1E6B2E',
@@ -358,6 +366,7 @@ function Badge({ label }: { label: string }) {
         borderRadius: '9999px',
       }}
     >
+      {icon}
       {label}
     </span>
   )

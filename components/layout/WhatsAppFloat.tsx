@@ -5,9 +5,15 @@ const WA_LINK =
 
 export default function WhatsAppFloat() {
   return (
+    // bottom-24 (96px) on mobile clears the fixed mobile sticky price/CTA
+    // bar present on pages like the hotel and package detail pages, the
+    // same stacking offset already used elsewhere on the site (for example
+    // the back-to-top button). This also keeps this button positioned
+    // identically to HotelWhatsAppFloat, which sits on top of this one
+    // with a higher z-index on hotel pages, so only one button is ever
+    // visible instead of exposing this one underneath at a different spot.
     <div
-      className="fixed z-50"
-      style={{ bottom: '28px', right: '28px' }}
+      className="fixed z-50 bottom-24 right-7 lg:bottom-7 lg:right-7"
     >
       {/* Pulsing ring */}
       <span

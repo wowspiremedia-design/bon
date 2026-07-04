@@ -14,9 +14,15 @@ export default function HotelWhatsAppFloat({ hotelName }: Props) {
   const waLink = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(message)}`
 
   return (
+    // Sits higher on mobile (bottom-24, 96px) to clear the fixed mobile
+    // sticky price/Check Availability bar on the hotel detail page, the
+    // same stacking offset already used elsewhere on the site (for example
+    // the back-to-top button) to keep floating elements from colliding.
+    // On desktop (lg and up) that bar does not exist, so it drops back to
+    // the standard 28px used by the site-wide WhatsAppFloat.
     <div
-      className="fixed"
-      style={{ bottom: '28px', right: '28px', zIndex: 55 }}
+      className="fixed bottom-24 right-7 lg:bottom-7 lg:right-7"
+      style={{ zIndex: 55 }}
     >
       <span
         className="absolute inset-0 rounded-full animate-ping"

@@ -49,7 +49,7 @@ export default function CheckAvailabilityButton({ hotelName }: Props) {
           fontSize: '15px',
           fontWeight: 700,
           color: '#FFFFFF',
-          background: '#1E6B2E',
+          background: 'linear-gradient(135deg, #1E6B2E 0%, #43A047 100%)',
           border: 'none',
           borderRadius: '10px',
           cursor: 'pointer',
