@@ -1,0 +1,51 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getFilteredHotels } from '@/lib/getFilteredHotels'
+
+function parseList(value: string | null): string[] {
+  return (value ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+
+  const location = searchParams.get('location') ?? undefined
+  const propertyCategory = searchParams.get('propertyCategory') ?? undefined
+  const propertyType = searchParams.get('propertyType') ?? undefined
+
+  const amenities = parseList(searchParams.get('amenities'))
+  const foodType = parseList(searchParams.get('foodType'))
+  const viewType = parseList(searchParams.get('viewType'))
+  const compatibility = parseList(searchParams.get('compatibility'))
+
+  const minPriceRaw = searchParams.get('minPrice')
+  const maxPriceRaw = searchParams.get('maxPrice')
+  const minPriceNum = minPriceRaw !== null ? Number(minPriceRaw) : undefined
+  const maxPriceNum = maxPriceRaw !== null ? Number(maxPriceRaw) : undefined
+  const minPrice = minPriceNum !== undefined && Number.isFinite(minPriceNum) ? minPriceNum : undefined
+  const maxPrice = maxPriceNum !== undefined && Number.isFinite(maxPriceNum) ? maxPriceNum : undefined
+
+  const cursorRaw = searchParams.get('cursor')
+  const cursor = cursorRaw !== null ? Math.max(1, parseInt(cursorRaw, 10) || 1) : 1
+
+  try {
+    const result = await getFilteredHotels({
+      location,
+      propertyCategory,
+      propertyType,
+      amenities,
+      foodType,
+      viewType,
+      compatibility,
+      minPrice,
+      maxPrice,
+      cursor,
+    })
+    return NextResponse.json(result)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}

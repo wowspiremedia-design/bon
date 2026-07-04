@@ -5,6 +5,9 @@ import type { Metadata } from 'next'
 import { getPackageBySlug } from '@/lib/api'
 import ItineraryAccordion from '@/components/package/ItineraryAccordion'
 import FAQAccordion from '@/components/package/FAQAccordion'
+import ShareButton from '@/components/package/ShareButton'
+import SectionScrollSpy, { type ScrollSpySection } from '@/components/shared/SectionScrollSpy'
+import { SECTION_NAV_SCROLL_OFFSET } from '@/components/shared/sectionScrollSpyConfig'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -46,15 +49,44 @@ export async function generateMetadata({
   const pkg = await getPackageBySlug(slug)
   if (!pkg) return {}
   const meta = pkg.meta_data
+  const title = getMeta(meta, 'rank_math_title') || pkg.name
+  const description = getMeta(meta, 'rank_math_description') || ''
+  const heroImage = pkg.images[0]?.src ?? ''
   return {
-    title: getMeta(meta, 'rank_math_title') || pkg.name,
-    description: getMeta(meta, 'rank_math_description') || '',
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: heroImage ? [{ url: heroImage }] : [],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: heroImage ? [heroImage] : [],
+    },
   }
 }
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WA_NUMBER ?? '919836755550'
+
+// Fixed content, identical on every package page, not sourced from WordPress.
+const PRICE_CONDITIONS = [
+  'Prices are subject to availability and may vary based on travel dates, hotel selection, and seasonal demand.',
+  'The actual price is reconfirmed at the time of booking. Discounts or deals may apply depending on ongoing promotions.',
+  'Prices displayed do not include optional add-ons such as cab upgrades, special activities, or extra room categories unless mentioned.',
+  'For group bookings, custom itineraries, or peak season travel, final pricing may differ. Please connect with our travel expert.',
+  '50% advance payment confirms your booking.',
+  'Remaining balance is due 45 days before travel.',
+  'Natural disasters or political unrest will be handled on a case-by-case basis.',
+  'Valid for Indian nationals only. International guests may require special permits.',
+  'Carry original government ID for all hotels.',
+  'Secure payments and flexible policies.',
+  '24x7 emergency support during travel.',
+]
 
 
 // ── Page ───────────────────────────────────────────────────────────────────────
@@ -125,6 +157,20 @@ export default async function PackagePage({
   const waMsg = encodeURIComponent(`Hi, I'm interested in the package: ${pkg.name}`)
   const waLink = `https://wa.me/${WA_NUMBER}?text=${waMsg}`
 
+  // ── Scroll-spy sections ──
+  const hasInclusionsSection = inclusions.length > 0 || exclusions.length > 0
+  const hasBestTimeSection = Boolean(weatherSummary) || bestMonthsArr.length > 0
+
+  const sections: ScrollSpySection[] = [
+    ...(pkg.short_description ? [{ id: 'section-overview', label: 'Overview' }] : []),
+    ...(itineraryDays.length > 0 ? [{ id: 'section-itinerary', label: 'Itinerary' }] : []),
+    ...(mapQuery ? [{ id: 'section-map', label: 'Map' }] : []),
+    ...(hasInclusionsSection ? [{ id: 'section-inclusions', label: 'Inclusions & Exclusions' }] : []),
+    ...(hasBestTimeSection ? [{ id: 'section-best-time', label: 'Best Time to Visit' }] : []),
+    ...(faqs.length > 0 ? [{ id: 'section-faq', label: 'FAQ' }] : []),
+    { id: 'section-price-conditions', label: 'Important Price & Package Conditions' },
+  ]
+
   return (
     <>
       {/* ── Hero ── */}
@@ -181,6 +227,11 @@ export default async function PackagePage({
                 <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.85)' }}>{route}</span>
               </div>
             )}
+
+            {/* Share button */}
+            <div style={{ marginBottom: '14px' }}>
+              <ShareButton packageName={pkg.name} />
+            </div>
 
             {/* Badges */}
             <div className="flex flex-wrap gap-2">
@@ -266,9 +317,12 @@ export default async function PackagePage({
           {/* ── Left column (content) ── */}
           <div style={{ flex: '1 1 0', minWidth: 0 }}>
 
+            {/* Sticky scroll-spy section nav, becomes sticky below the header once scrolled past the hero */}
+            <SectionScrollSpy sections={sections} />
+
             {/* 1. Overview */}
             {pkg.short_description && (
-              <Section title="Overview">
+              <Section id="section-overview" title="Overview">
                 <div
                   className="prose-content"
                   style={{ fontSize: '15px', color: '#4A4A4A', lineHeight: 1.8 }}
@@ -279,14 +333,21 @@ export default async function PackagePage({
 
             {/* 2. Itinerary */}
             {itineraryDays.length > 0 && (
-              <Section title="Itinerary">
+              <Section id="section-itinerary" title="Itinerary">
                 <ItineraryAccordion days={itineraryDays} />
               </Section>
             )}
 
             {/* 3. Map */}
             {mapQuery && (
-              <Section title="Map">
+              <Section id="section-map" title="Map">
+                <div className="flex items-center gap-2" style={{ marginBottom: '10px' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1E6B2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                    <circle cx="12" cy="10" r="3" />
+                  </svg>
+                  <span style={{ fontSize: '14px', color: '#4A4A4A', fontWeight: 600 }}>{mapQuery}</span>
+                </div>
                 <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #E0EBE1' }}>
                   <iframe
                     src={`https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed&z=8`}
@@ -302,8 +363,8 @@ export default async function PackagePage({
             )}
 
             {/* 4. Inclusions & Exclusions */}
-            {(inclusions.length > 0 || exclusions.length > 0) && (
-              <Section title="Inclusions & Exclusions">
+            {hasInclusionsSection && (
+              <Section id="section-inclusions" title="Inclusions & Exclusions">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {inclusions.length > 0 && (
                     <div>
@@ -345,8 +406,8 @@ export default async function PackagePage({
             )}
 
             {/* 5. Best Time */}
-            {(weatherSummary || bestMonthsArr.length > 0) && (
-              <Section title="Best Time to Visit">
+            {hasBestTimeSection && (
+              <Section id="section-best-time" title="Best Time to Visit">
                 {weatherSummary && (
                   <p style={{ fontSize: '14px', color: '#4A4A4A', lineHeight: 1.8, marginBottom: '16px' }}>
                     {weatherSummary}
@@ -377,10 +438,56 @@ export default async function PackagePage({
 
             {/* 6. FAQ */}
             {faqs.length > 0 && (
-              <Section title="Frequently Asked Questions">
+              <Section id="section-faq" title="Frequently Asked Questions">
                 <FAQAccordion faqs={faqs} />
               </Section>
             )}
+
+            {/* 7. Important Price & Package Conditions (fixed, identical on every package) */}
+            <Section id="section-price-conditions" title="Important Price & Package Conditions">
+              <div
+                style={{
+                  background: '#F1F5F9',
+                  border: '1px solid #DDE6ED',
+                  borderRadius: '12px',
+                  padding: '20px 24px',
+                }}
+              >
+                <div className="flex items-center gap-2" style={{ marginBottom: '14px' }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1E6B2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="11" x2="12" y2="16" />
+                    <circle cx="12" cy="8" r="0.75" fill="#1E6B2E" stroke="none" />
+                  </svg>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#1A1A1A' }}>Please Note</span>
+                </div>
+
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {PRICE_CONDITIONS.map((item, i) => (
+                    <li key={i} className="flex items-start gap-3" style={{ fontSize: '14px', color: '#4A4A4A', lineHeight: 1.6 }}>
+                      <span
+                        aria-hidden="true"
+                        style={{
+                          flexShrink: 0,
+                          width: '6px',
+                          height: '6px',
+                          borderRadius: '50%',
+                          background: '#D90429',
+                          marginTop: '8px',
+                        }}
+                      />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+
+                <div style={{ borderTop: '1px solid #DDE6ED', margin: '18px 0 14px' }} />
+
+                <p style={{ fontSize: '13px', fontStyle: 'italic', color: '#888888' }}>
+                  Bon Voyagers strives to provide transparent pricing. For clarity or a custom quote, please contact our support team.
+                </p>
+              </div>
+            </Section>
           </div>
 
           {/* ── Right column (sticky sidebar) ── */}
@@ -454,9 +561,9 @@ export default async function PackagePage({
 
 // ── Section wrapper ────────────────────────────────────────────────────────────
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ id, title, children }: { id?: string; title: string; children: React.ReactNode }) {
   return (
-    <section style={{ marginBottom: '40px' }}>
+    <section id={id} style={{ marginBottom: '40px', scrollMarginTop: `${SECTION_NAV_SCROLL_OFFSET}px` }}>
       <h2
         className="font-display"
         style={{
