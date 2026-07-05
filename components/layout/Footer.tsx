@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { FaFacebookF, FaInstagram, FaYoutube, FaLinkedinIn } from 'react-icons/fa'
 
 const TOUR_PACKAGES = [
   { label: 'Kashmir Packages', slug: 'kashmir-packages' },
@@ -50,6 +51,18 @@ function NavLink({ href, children }: { href: string; children: React.ReactNode }
 export default function Footer() {
   return (
     <footer style={{ background: '#0D1A0F' }}>
+
+      <svg width="0" height="0" className="absolute">
+        <defs>
+          <linearGradient id="instagram-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#feda75" />
+            <stop offset="30%" stopColor="#fa7e1e" />
+            <stop offset="60%" stopColor="#d62976" />
+            <stop offset="85%" stopColor="#962fbf" />
+            <stop offset="100%" stopColor="#4f5bd5" />
+          </linearGradient>
+        </defs>
+      </svg>
 
       {/* Gradient top border */}
       <div
@@ -198,56 +211,18 @@ export default function Footer() {
             </div>
 
             {/* Social icons */}
-            <div className="flex gap-4 mt-3">
-              {/* Facebook */}
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-                className="transition-colors duration-200"
-                style={{ color: '#666666' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = '#C8A96A')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = '#666666')}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                </svg>
+            <div className="flex items-center gap-4 mt-3">
+              <a href="https://www.facebook.com/bonvoyagers.official" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                <FaFacebookF className="w-5 h-5" style={{ color: '#1877F2' }} />
               </a>
-
-              {/* Instagram */}
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-                className="transition-colors duration-200"
-                style={{ color: '#666666' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = '#C8A96A')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = '#666666')}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                </svg>
+              <a href="https://www.instagram.com/bonvoyagers_official/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                <FaInstagram className="w-5 h-5" style={{ fill: 'url(#instagram-gradient)' }} />
               </a>
-
-              {/* YouTube */}
-              <a
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="YouTube"
-                className="transition-colors duration-200"
-                style={{ color: '#666666' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = '#C8A96A')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = '#666666')}
-              >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
-                  <polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" />
-                </svg>
+              <a href="https://www.youtube.com/@bonvoyagersofficial" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+                <FaYoutube className="w-5 h-5" style={{ color: '#FF0000' }} />
+              </a>
+              <a href="https://www.linkedin.com/company/bon-voyagers/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                <FaLinkedinIn className="w-5 h-5" style={{ color: '#0A66C2' }} />
               </a>
             </div>
           </div>

@@ -62,7 +62,7 @@ export default async function Home() {
       <HeroCarousel slides={heroSlides} />
 
       {/* 4. Collections */}
-      <div className="pb-20">
+      <div className="pb-12">
         <CollectionsSection />
       </div>
 

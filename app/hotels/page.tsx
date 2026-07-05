@@ -101,7 +101,7 @@ export default async function AllHotelsPage() {
               fontFamily: 'var(--font-playfair)',
             }}
           >
-            All Hotels & Stays
+            Hotels
           </h1>
         </div>
       </div>

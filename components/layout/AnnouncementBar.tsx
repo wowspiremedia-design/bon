@@ -1,24 +1,37 @@
 export default function AnnouncementBar() {
   return (
     <div
-      className="sticky top-0 z-50 w-full flex items-center justify-between"
+      className="w-full h-10 flex items-center justify-between"
       style={{
         background: '#0D1A0F',
-        padding: '10px 20px',
+        padding: '0 20px',
       }}
     >
       <p
-        className="m-0"
+        className="m-0 hidden sm:block"
         style={{
           color: '#C8A96A',
           fontSize: '13px',
           fontWeight: 600,
         }}
       >
-        🔥 18% OFF North East Tours — Limited Seats
+        🔥 18% OFF North East Tours • Limited Seats
+      </p>
+
+      <p
+        className="m-0 sm:hidden"
+        style={{
+          color: '#C8A96A',
+          fontSize: '13px',
+          fontWeight: 600,
+          whiteSpace: 'nowrap',
+        }}
+      >
+        🔥 18% OFF North East Tours
       </p>
 
       <span
+        className="hidden sm:inline-flex"
         style={{
           background: '#C8A96A',
           color: '#0D1A0F',

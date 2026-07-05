@@ -4,6 +4,8 @@ import { useRef, useState, useCallback } from 'react'
 import Link from 'next/link'
 import PackageCard from '@/components/shared/PackageCard'
 import type { PackageCardProps } from '@/components/shared/PackageCard'
+import DestinationCard from './DestinationCard'
+import type { DestinationCardProps } from './DestinationCard'
 
 interface CollectionRowProps {
   name: string
@@ -13,6 +15,8 @@ interface CollectionRowProps {
   viewAllHref: string
   packages: PackageCardProps[]
   bgColor: string
+  cardType?: 'package' | 'destination'
+  destinations?: DestinationCardProps[]
 }
 
 export default function CollectionRow({
@@ -23,6 +27,8 @@ export default function CollectionRow({
   viewAllHref,
   packages,
   bgColor,
+  cardType = 'package',
+  destinations = [],
 }: CollectionRowProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [canLeft, setCanLeft] = useState(false)
@@ -47,46 +53,52 @@ export default function CollectionRow({
   }
 
   return (
-    <section style={{ background: bgColor, padding: '48px 0' }}>
+    <section style={{ background: bgColor, padding: '32px 0' }}>
       <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 clamp(16px, 4vw, 40px)' }}>
 
         {/* ── Row header ── */}
-        <div className="flex items-start justify-between gap-4 mb-8">
-          <div>
-            <p
-              className="mb-2 uppercase"
-              style={{ color: '#C8A96A', fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em' }}
+        <div className="mb-6">
+          <div className="mb-2">
+            <span
+              className="inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-wide"
+              style={{ backgroundColor: 'rgba(255,255,255,0.55)', color: '#1A1A1A' }}
             >
-              <span className="mr-2" style={{ fontSize: '24px' }}>{emoji}</span>BON COLLECTION
-            </p>
-            <h2
-              className="font-display mb-2"
-              style={{
-                fontSize: '26px',
-                fontWeight: 700,
-                color: '#1A1A1A',
-                lineHeight: 1.2,
-                borderLeft: '3px solid #C8A96A',
-                paddingLeft: '12px',
-              }}
-            >
-              {name}
-            </h2>
-            {description && (
-              <p style={{ fontSize: '14px', color: '#6B7280', maxWidth: '480px', lineHeight: 1.6 }}>
-                {description}
-              </p>
-            )}
-            <Link
-              href={viewAllHref}
-              className="inline-flex items-center gap-1 mt-3 font-semibold transition-opacity duration-200 hover:opacity-75"
-              style={{ color: '#1E6B2E', fontSize: '14px' }}
-            >
-              View all in this collection
-              <span>→</span>
-            </Link>
+              BON COLLECTION
+            </span>
           </div>
 
+          <div className="flex items-start sm:items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3 flex-1 min-w-0">
+              <h2
+                className="font-display border-b-2 sm:border-b-0 sm:border-l-[3px] border-[#C8A96A] pb-1 sm:pb-0 sm:pl-3 inline-block sm:inline"
+                style={{
+                  fontSize: '26px',
+                  fontWeight: 700,
+                  color: '#1A1A1A',
+                  lineHeight: 1.2,
+                }}
+              >
+                {name}
+              </h2>
+              {description && (
+                <p
+                  className="hidden sm:block truncate min-w-0"
+                  style={{ fontSize: '14px', color: '#1A1A1A' }}
+                >
+                  {description}
+                </p>
+              )}
+            </div>
+
+            <Link
+              href={viewAllHref}
+              className="shrink-0 ml-auto inline-flex items-center gap-1 font-semibold transition-opacity duration-200 hover:opacity-75 whitespace-nowrap"
+              style={{ color: '#1E6B2E', fontSize: '14px' }}
+            >
+              View All
+              <span>↗</span>
+            </Link>
+          </div>
         </div>
 
         {/* ── Scrollable cards track ── */}
@@ -116,14 +128,23 @@ export default function CollectionRow({
               WebkitOverflowScrolling: 'touch',
             }}
           >
-            {packages.map((pkg) => (
-              <div
-                key={pkg.id}
-                style={{ width: 'clamp(220px, 72vw, 320px)', flexShrink: 0, scrollSnapAlign: 'start' }}
-              >
-                <PackageCard {...pkg} />
-              </div>
-            ))}
+            {cardType === 'destination'
+              ? destinations.map((dest) => (
+                  <div
+                    key={dest.slug}
+                    style={{ width: 'clamp(220px, 72vw, 320px)', flexShrink: 0, scrollSnapAlign: 'start' }}
+                  >
+                    <DestinationCard {...dest} />
+                  </div>
+                ))
+              : packages.map((pkg) => (
+                  <div
+                    key={pkg.id}
+                    style={{ width: 'clamp(220px, 72vw, 320px)', flexShrink: 0, scrollSnapAlign: 'start' }}
+                  >
+                    <PackageCard {...pkg} />
+                  </div>
+                ))}
           </div>
 
           {/* Right arrow */}

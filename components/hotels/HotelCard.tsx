@@ -3,6 +3,7 @@ import Link from 'next/link'
 import type { Hotel } from '@/lib/hotels-api'
 import { decodeHtmlEntities } from '@/lib/decodeHtmlEntities'
 import { AmenityIcon } from './AmenityIcon'
+import ShareHotelButton from '@/components/hotels/ShareHotelButton'
 
 const fmt = (n: number) => '₹' + n.toLocaleString('en-IN')
 
@@ -65,12 +66,12 @@ export default function HotelCard({ hotel }: { hotel: Hotel }) {
           </p>
         )}
 
-        <h3
-          className="mb-[10px] line-clamp-2"
-          style={{ fontSize: '15px', fontWeight: 600, color: '#1A1A1A', lineHeight: '1.4' }}
-        >
-          {title}
-        </h3>
+        <div className="flex items-start justify-between gap-2 mb-[10px]">
+          <h3 className="line-clamp-2" style={{ fontSize: '15px', fontWeight: 600, color: '#1A1A1A', lineHeight: '1.4' }}>
+            {title}
+          </h3>
+          <ShareHotelButton title={title} slug={hotel.slug} />
+        </div>
 
         {visibleAmenities.length > 0 && (
           <div className="flex flex-wrap gap-x-3 gap-y-1 mb-[12px]">

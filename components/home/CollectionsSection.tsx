@@ -1,9 +1,43 @@
 import CollectionRow from './CollectionRow'
-import { getActiveCollections, getPackages, type Collection } from '@/lib/api'
+import { getActiveCollections, getPackages, getCategoryPackageCounts, type Collection } from '@/lib/api'
+import { getDestinationSlugForCategory } from '@/lib/destinationCategoryLinks'
 import { mapProduct } from '@/lib/mapProduct'
 import type { PackageCardProps } from '@/components/shared/PackageCard'
+import type { DestinationCardProps } from '@/components/home/DestinationCard'
 
 const ROW_BG = ['#FFFFFF', '#F9F7F4']
+
+function darkenHex(hex: string, amount = 0.15): string {
+  const clean = hex.replace('#', '')
+  const num = parseInt(clean, 16)
+  let r = (num >> 16) & 0xff
+  let g = (num >> 8) & 0xff
+  let b = num & 0xff
+  r = Math.max(0, Math.round(r * (1 - amount)))
+  g = Math.max(0, Math.round(g * (1 - amount)))
+  b = Math.max(0, Math.round(b * (1 - amount)))
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`
+}
+
+const COLLECTION_COLORS: { match: string; color: string }[] = [
+  { match: 'suhani safar', color: '#FDCEDF' },
+  { match: 'sanatan path', color: '#FFAA00' },
+  { match: 'char dham path', color: '#ff9933' },
+  { match: 'honeymoon diaries', color: '#FD7979' },
+  { match: 'hidden hamlets', color: '#9AD872' },
+  { match: 'kailash kora', color: '#A1E3F9' },
+  { match: 'host of himalayas', color: '#B4E380' },
+]
+
+function getCollectionBg(name: string, fallbackIndex: number): string {
+  const lower = name.toLowerCase()
+  const found = COLLECTION_COLORS.find((c) => lower.includes(c.match))
+  if (found) {
+    const darker = darkenHex(found.color, 0.15)
+    return `linear-gradient(135deg, ${found.color} 0%, ${darker} 100%)`
+  }
+  return ROW_BG[fallbackIndex % 2]
+}
 
 const COLLECTION_EMOJIS: Record<string, string> = {
   spiritual: '🕉️',
@@ -51,24 +85,67 @@ async function fetchPackagesForCollection(col: Collection): Promise<PackageCardP
   }
 }
 
+async function fetchDestinationCardsForCollection(col: Collection): Promise<DestinationCardProps[]> {
+  if (!col.destinations?.length) return []
+
+  const catIdByIndex: (number | null)[] = col.destinations.map((dest) => {
+    const catEntry = dest.package_category?.[0]
+    const catId = typeof catEntry === 'object' ? catEntry?.term_id : catEntry
+    return catId ?? null
+  })
+
+  const validCatIds = catIdByIndex.filter((id): id is number => id !== null)
+  const countMap = await getCategoryPackageCounts(validCatIds)
+
+  const results = col.destinations.map((dest, i) => {
+    const catId = catIdByIndex[i]
+    if (!catId) return null
+
+    const slug = getDestinationSlugForCategory(catId)
+    if (!slug) return null
+
+    const count = countMap[catId] ?? 0
+    if (count === 0) return null
+
+    return {
+      name: dest.destination_title ?? '',
+      image: dest.destination_image ?? '',
+      slug,
+      count,
+    }
+  })
+
+  return results.filter((r): r is NonNullable<typeof r> => r !== null)
+}
+
 export default async function CollectionsSection() {
   const activeCollections = await getActiveCollections()
 
   const rows = await Promise.all(
-    activeCollections.map(async (col) => ({
-      col,
-      packages: await fetchPackagesForCollection(col),
-    }))
+    activeCollections.map(async (col) => {
+      if (col.collection_type?.startsWith('type_1')) {
+        return {
+          col,
+          packages: [] as PackageCardProps[],
+          destinations: await fetchDestinationCardsForCollection(col),
+        }
+      }
+      return {
+        col,
+        packages: await fetchPackagesForCollection(col),
+        destinations: [] as DestinationCardProps[],
+      }
+    })
   )
 
-  const validRows = rows.filter((r) => r.packages.length > 0)
+  const validRows = rows.filter((r) => r.packages.length > 0 || r.destinations.length > 0)
 
   if (validRows.length === 0) return null
 
   return (
     <>
       {/* ── Section header ── */}
-      <section className="pt-6 pb-10" style={{ background: '#FFFFFF' }}>
+      <section className="pt-6 pb-6" style={{ background: '#FFFFFF' }}>
         <div
           style={{
             maxWidth: '1280px',
@@ -120,7 +197,7 @@ export default async function CollectionsSection() {
       </section>
 
       {/* ── One row per collection ── */}
-      {validRows.map(({ col, packages }, i) => (
+      {validRows.map(({ col, packages, destinations }, i) => (
         <CollectionRow
           key={col.id}
           name={col.collection_name}
@@ -129,7 +206,9 @@ export default async function CollectionsSection() {
           emoji={getEmoji(col.collection_name)}
           viewAllHref={`/collection/${col.collection_slug}`}
           packages={packages}
-          bgColor={ROW_BG[i % 2]}
+          cardType={destinations.length > 0 ? 'destination' : 'package'}
+          destinations={destinations}
+          bgColor={getCollectionBg(col.collection_name, i)}
         />
       ))}
     </>

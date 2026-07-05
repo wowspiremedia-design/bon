@@ -1,23 +1,26 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 
 interface Props {
   images: string[]
+  label?: string
+  headline?: ReactNode
+  subtitle?: string
 }
 
-export default function HeroSection({ images }: Props) {
+export default function HeroSection({ images, label, headline, subtitle }: Props) {
   const [current, setCurrent] = useState(0)
   const [resetKey, setResetKey] = useState(0)
+
+  const displayLabel = label ?? 'BON VOYAGERS'
+  const displayHeadline = headline ?? (<>Soulful, Slow &<br />Smart Travel</>)
+  const displaySubtitle = subtitle ?? "Discover India's most extraordinary destinations with Bon Voyagers"
 
   const goTo = useCallback((index: number) => {
     setCurrent(index)
     setResetKey((k) => k + 1)
   }, [])
-
-  useEffect(() => {
-    console.log('HeroSection images:', images.length, images)
-  }, [images])
 
   useEffect(() => {
     if (images.length <= 1) return
@@ -30,10 +33,8 @@ export default function HeroSection({ images }: Props) {
   const prev = () => goTo((current - 1 + Math.max(images.length, 1)) % Math.max(images.length, 1))
   const next = () => goTo((current + 1) % Math.max(images.length, 1))
 
-  const pad = (n: number) => String(n).padStart(2, '0')
-
   return (
-    <div className="relative w-full h-[60vh] md:h-[85vh] overflow-hidden">
+    <div className="relative w-full h-[57vh] md:h-[80vh] overflow-hidden">
 
       {/* Background */}
       {images.length === 0 ? (
@@ -62,20 +63,22 @@ export default function HeroSection({ images }: Props) {
       <div className="absolute inset-0 w-1/2 bg-gradient-to-r from-black/40 to-transparent" />
 
       {/* Text overlay */}
-      <div className="absolute bottom-0 left-0 z-20 px-8 md:px-16 pb-12 md:pb-20">
+      <div className="absolute bottom-0 z-20 left-16 right-16 md:left-24 md:right-24 pb-12 md:pb-20">
         <p className="text-xs md:text-sm uppercase tracking-[0.35em] text-[#C8A96A] mb-4 font-medium">
-          BON VOYAGERS
+          {displayLabel}
         </p>
         <h1
           className="font-bold text-white leading-tight mb-4"
           style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.25rem, 6vw, 4.5rem)' }}
         >
-          Soulful, Slow &<br />Smart Travel
+          {displayHeadline}
         </h1>
         <div className="w-20 h-[2px] bg-[#C8A96A] mb-6" />
-        <p className="text-white/70 text-sm md:text-base max-w-lg leading-relaxed">
-          Discover India&apos;s most extraordinary destinations with Bon Voyagers
-        </p>
+        {displaySubtitle && (
+          <p className="text-white/70 text-sm md:text-base max-w-lg leading-relaxed">
+            {displaySubtitle}
+          </p>
+        )}
       </div>
 
       {/* Left arrow */}
@@ -115,13 +118,6 @@ export default function HeroSection({ images }: Props) {
               }`}
             />
           ))}
-        </div>
-      )}
-
-      {/* Slide counter */}
-      {images.length > 0 && (
-        <div className="absolute top-6 right-6 z-30 text-white/60 text-sm font-medium tabular-nums">
-          {pad(current + 1)} / {pad(images.length)}
         </div>
       )}
     </div>

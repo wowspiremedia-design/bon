@@ -75,7 +75,11 @@ export interface Collection {
   collection_priority?: number
   is_active?: boolean | string
   direct_package_collection?: CollectionACFSource
-  destinations?: Array<{ package_category?: Array<{ term_id: number } | number> }>
+  destinations?: Array<{
+    destination_title?: string
+    destination_image?: string
+    package_category?: Array<{ term_id: number } | number>
+  }>
 }
 
 export interface GetPackagesParams {
@@ -255,6 +259,36 @@ export async function getCategories(): Promise<Category[]> {
   return wcFetch<Category[]>('/wp-json/wc/v3/products/categories?per_page=100')
 }
 
+export async function getCategoryPackageCount(categoryId: number): Promise<number> {
+  try {
+    const cat = await wcFetch<{ count: number }>(`/wp-json/wc/v3/products/categories/${categoryId}`)
+    return cat.count ?? 0
+  } catch {
+    return 0
+  }
+}
+
+export async function getCategoryPackageCounts(categoryIds: number[]): Promise<Record<number, number>> {
+  if (categoryIds.length === 0) return {}
+  try {
+    const uniqueIds = Array.from(new Set(categoryIds))
+    const qs = new URLSearchParams({
+      include: uniqueIds.join(','),
+      per_page: '100',
+    })
+    const cats = await wcFetch<{ id: number; count: number }[]>(
+      `/wp-json/wc/v3/products/categories?${qs.toString()}`
+    )
+    const result: Record<number, number> = {}
+    for (const cat of cats) {
+      result[cat.id] = cat.count ?? 0
+    }
+    return result
+  } catch {
+    return {}
+  }
+}
+
 export async function getSalePackages(perPage = 12): Promise<WCProduct[]> {
   return wcFetch<WCProduct[]>(
     `/wp-json/wc/v3/products?on_sale=true&per_page=${perPage}&status=publish`,
@@ -311,6 +345,45 @@ export async function getActiveCollections(): Promise<Collection[]> {
   } catch {
     return []
   }
+}
+
+export async function getCollectionCoverImage(col: Collection): Promise<string | null> {
+  try {
+    if (col.destinations?.length) {
+      return col.destinations[0]?.destination_image ?? null
+    }
+
+    const src = col.direct_package_collection
+    if (src?.package_source_type === 'auto_category' && src.package_category?.length) {
+      const entry = src.package_category[0]
+      const catId = typeof entry === 'object' ? entry.term_id : entry
+      if (catId) {
+        const products = await getPackages({ category: catId, perPage: 1 })
+        return products[0]?.images?.[0]?.src ?? null
+      }
+    } else if (src?.package_source_type === 'auto_tag' && src.package_tag?.length) {
+      const entry = src.package_tag[0]
+      const tagId = typeof entry === 'object' ? entry.term_id : entry
+      if (tagId) {
+        const products = await getPackages({ tag: tagId, perPage: 1 })
+        return products[0]?.images?.[0]?.src ?? null
+      }
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
+export async function getCollectionsWithCoverImages() {
+  const collections = await getActiveCollections()
+  const withImages = await Promise.all(
+    collections.map(async (col) => {
+      const image = await getCollectionCoverImage(col)
+      return { ...col, coverImage: image }
+    })
+  )
+  return withImages.filter((c) => c.coverImage !== null)
 }
 
 export async function getDestinationImages(): Promise<string[]> {

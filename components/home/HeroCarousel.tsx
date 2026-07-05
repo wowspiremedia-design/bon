@@ -28,10 +28,10 @@ export default function HeroCarousel({ slides }: Props) {
   if (slides.length === 0) return null
 
   return (
-    <section className="w-full bg-[#0D1A0F] py-12 md:py-16 overflow-hidden">
+    <section className="w-full bg-[#0D1A0F] pt-6 md:pt-8 pb-4 md:pb-6 overflow-hidden">
 
       {/* Section header */}
-      <div className="text-center mb-10">
+      <div className="text-center mb-6">
         <p className="text-[#C8A96A] text-xs uppercase tracking-[0.3em] font-semibold mb-2">
           FEATURED JOURNEYS
         </p>
@@ -67,7 +67,7 @@ export default function HeroCarousel({ slides }: Props) {
           {slides.map((slide, i) => (
             <div
               key={i}
-              className="flex-shrink-0 w-[320px] md:w-[420px] h-[480px] md:h-[540px] rounded-3xl overflow-hidden relative snap-start cursor-pointer group"
+              className="flex-shrink-0 w-[340px] md:w-[440px] h-[440px] md:h-[500px] rounded-3xl overflow-hidden relative snap-start cursor-pointer group"
             >
               {/* Image */}
               <img
@@ -83,11 +83,13 @@ export default function HeroCarousel({ slides }: Props) {
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
               <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
+              {/* Pill badge - independently positioned, unaffected by title/subtitle wrapping */}
+              <span className="absolute top-4 left-4 md:top-5 md:left-5 z-10 inline-block bg-[#C8A96A]/90 border border-[#C8A96A] text-[#1A1A1A] text-xs px-3 py-1 rounded-full font-medium">
+                BON VOYAGERS JOURNEY
+              </span>
+
               {/* Card content */}
               <div className="absolute bottom-0 left-0 right-0 p-6 z-10">
-                <span className="inline-block mb-3 bg-[#C8A96A]/20 border border-[#C8A96A]/40 text-[#C8A96A] text-xs px-3 py-1 rounded-full font-medium">
-                  BON VOYAGERS JOURNEY
-                </span>
                 <h3
                   className="font-bold text-white mb-2 leading-tight"
                   style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(1.4rem, 2.5vw, 1.75rem)' }}

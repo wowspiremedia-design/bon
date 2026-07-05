@@ -48,6 +48,12 @@ export async function generateMetadata({
   return {
     title: metaTitle,
     ...(metaDescription ? { description: metaDescription } : {}),
+    openGraph: {
+      title: metaTitle,
+      ...(metaDescription ? { description: metaDescription } : {}),
+      ...(hotel.image ? { images: [{ url: hotel.image, width: 1200, height: 630, alt: title }] } : {}),
+      type: 'website',
+    },
   }
 }
 

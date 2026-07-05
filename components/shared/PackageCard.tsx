@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import SharePackageButton from '@/components/shared/SharePackageButton'
 
 export interface PackageCardProps {
   id: number
@@ -150,11 +151,11 @@ export default function PackageCard({
         </div>
 
         {/* ── Body ── */}
-        <div style={{ padding: '16px' }}>
+        <div style={{ padding: '14px' }}>
 
           {/* Destination */}
           <p
-            className="mb-[6px] uppercase"
+            className="mb-[4px] uppercase"
             style={{
               color: '#1E6B2E',
               fontSize: '11px',
@@ -167,7 +168,7 @@ export default function PackageCard({
 
           {/* Title — 2-line clamp */}
           <h3
-            className="mb-[10px] line-clamp-2"
+            className="mb-[8px] line-clamp-2"
             style={{ fontSize: '15px', fontWeight: 600, color: '#1A1A1A', lineHeight: '1.4' }}
           >
             {title}
@@ -175,7 +176,7 @@ export default function PackageCard({
 
           {/* Route */}
           {route && (
-            <div className="flex items-center gap-[4px] mb-[8px]" style={{ overflow: 'hidden', width: '100%' }}>
+            <div className="flex items-center gap-[4px] mb-[6px]" style={{ overflow: 'hidden', width: '100%' }}>
               <svg
                 width="11"
                 height="11"
@@ -208,7 +209,7 @@ export default function PackageCard({
 
           {/* Meta row — rating and reviews */}
           <div
-            className="flex items-center gap-3 mb-[14px] flex-wrap"
+            className="flex items-center gap-3 mb-[10px] flex-wrap"
             style={{ fontSize: '12px', color: '#888888' }}
           >
             <span className="flex items-center gap-[4px]">
@@ -222,22 +223,25 @@ export default function PackageCard({
           </div>
 
           {/* Price */}
-          <div className="mb-3">
-            {onSale && (
+          <div className="flex items-end justify-between gap-2 mb-2">
+            <div>
+              {onSale && (
+                <p
+                  className="line-through leading-none mb-[3px]"
+                  style={{ fontSize: '13px', color: '#AAAAAA' }}
+                >
+                  {fmt(regularPrice)}
+                </p>
+              )}
               <p
-                className="line-through leading-none mb-[3px]"
-                style={{ fontSize: '13px', color: '#AAAAAA' }}
+                className="leading-none mb-[3px]"
+                style={{ fontSize: '20px', fontWeight: 700, color: '#1E6B2E' }}
               >
-                {fmt(regularPrice)}
+                {fmt(price)}
               </p>
-            )}
-            <p
-              className="leading-none mb-[3px]"
-              style={{ fontSize: '20px', fontWeight: 700, color: '#1E6B2E' }}
-            >
-              {fmt(price)}
-            </p>
-            <p style={{ fontSize: '12px', color: '#888888' }}>per person</p>
+              <p style={{ fontSize: '12px', color: '#888888' }}>per person</p>
+            </div>
+            <SharePackageButton title={title} slug={slug} />
           </div>
 
           {/* Book Now button — full width */}
