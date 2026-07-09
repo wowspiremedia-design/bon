@@ -2,41 +2,13 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getPackageBySlug } from '@/lib/api'
+import { getPackageBySlug } from '@/lib/payload-api'
+import { lexicalToHtml } from '@/lib/lexicalToHtml'
 import ItineraryAccordion from '@/components/package/ItineraryAccordion'
 import FAQAccordion from '@/components/package/FAQAccordion'
 import ShareButton from '@/components/package/ShareButton'
 import SectionScrollSpy, { type ScrollSpySection } from '@/components/shared/SectionScrollSpy'
 import { SECTION_NAV_SCROLL_OFFSET } from '@/components/shared/sectionScrollSpyConfig'
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
-type MetaArr = Array<{ key: string; value: unknown }>
-
-function getMeta(meta: MetaArr, key: string): string {
-  const item = meta.find((m) => m.key === key)
-  return typeof item?.value === 'string' ? item.value : ''
-}
-
-function getMetaValues(meta: MetaArr, key: string): string[] {
-  const item = meta.find((m) => m.key === key)
-  if (!item) return []
-  if (Array.isArray(item.value)) return item.value.filter((v): v is string => typeof v === 'string')
-  if (typeof item.value === 'string') return item.value.split(',').map((s) => s.trim()).filter(Boolean)
-  return []
-}
-
-function getMetaList(meta: MetaArr, prefix: string, field: string): string[] {
-  const results: string[] = []
-  let i = 0
-  while (true) {
-    const val = getMeta(meta, `${prefix}${i}_${field}`)
-    if (!val) break
-    results.push(val)
-    i++
-  }
-  return results
-}
 
 // ── Metadata ───────────────────────────────────────────────────────────────────
 
@@ -48,10 +20,9 @@ export async function generateMetadata({
   const { slug } = await params
   const pkg = await getPackageBySlug(slug)
   if (!pkg) return {}
-  const meta = pkg.meta_data
-  const title = getMeta(meta, 'rank_math_title') || pkg.name
-  const description = getMeta(meta, 'rank_math_description') || ''
-  const heroImage = pkg.images[0]?.src ?? ''
+  const title = pkg.seoTitle || pkg.title
+  const description = pkg.seoDescription || ''
+  const heroImage = pkg.images[0]?.url ?? ''
   return {
     title,
     description,
@@ -100,61 +71,43 @@ export default async function PackagePage({
   const pkg = await getPackageBySlug(slug)
   if (!pkg) notFound()
 
-  const meta = pkg.meta_data
-
-  // ── Extract meta fields ──
-  const route          = getMeta(meta, '_package_place')
-  const duration       = getMeta(meta, '_package_days_duration')
-  const people         = getMeta(meta, '_package_people')
-  const mapQuery       = getMeta(meta, 'map_query')
-  const weatherSummary  = getMeta(meta, 'weather_summary')
-  const bestMonthsArr   = getMetaValues(meta, 'best_months')
+  // ── Extract fields ──
+  const route          = pkg.route
+  const duration       = pkg.duration
+  const people         = pkg.people
+  const mapQuery       = pkg.mapQuery
+  const weatherSummary  = pkg.weatherSummary
+  const bestMonthsArr   = pkg.bestMonths
 
   // ── Itinerary ──
-  const itineraryDays = (() => {
-    const days = []
-    let i = 0
-    while (true) {
-      const label = getMeta(meta, `package_itinerary_${i}_day_label`)
-      const title = getMeta(meta, `package_itinerary_${i}_day_title`)
-      const desc  = getMeta(meta, `package_itinerary_${i}_day_description`)
-      if (!label && !title && !desc) break
-      days.push({ day_label: label, day_title: title, day_description: desc })
-      i++
-    }
-    return days
-  })()
+  const itineraryDays = pkg.itinerary.map((day) => ({
+    day_label: day.dayLabel,
+    day_title: day.dayTitle,
+    day_description: day.dayDescription,
+  }))
 
-  const inclusions = getMetaList(meta, 'package_inclusions_', 'inclusion_item')
-  const exclusions = getMetaList(meta, 'package_exclusions_', 'exclusion_item')
+  const inclusions = pkg.inclusions.map((i) => i.item)
+  const exclusions = pkg.exclusions.map((e) => e.item)
 
   // ── FAQs ──
-  const faqs = (() => {
-    const items = []
-    let i = 0
-    while (true) {
-      const question = getMeta(meta, `frequently_asked_questions_${i}_question_label`)
-      const answer   = getMeta(meta, `frequently_asked_questions_${i}_answer_label`)
-      if (!question && !answer) break
-      items.push({ question_label: question, answer_label: answer })
-      i++
-    }
-    return items
-  })()
+  const faqs = pkg.faqs.map((f) => ({ question_label: f.question, answer_label: f.answer }))
+
+  // ── Overview ──
+  const shortDescriptionHtml = lexicalToHtml(pkg.shortDescription)
 
   // ── Pricing ──
-  const price        = parseFloat(pkg.price) || 0
-  const regularPrice = parseFloat(pkg.regular_price) || 0
-  const onSale       = pkg.on_sale && regularPrice > price
+  const price        = pkg.price
+  const regularPrice = pkg.regularPrice
+  const onSale       = pkg.onSale && regularPrice > price
   const discountPct  = onSale ? Math.round((1 - price / regularPrice) * 100) : 0
   const fmt          = (n: number) => '₹' + n.toLocaleString('en-IN')
 
   // ── Hero image ──
-  const heroImage = pkg.images[0]?.src ?? ''
-  const categoryName = pkg.categories[0]?.name ?? ''
+  const heroImage = pkg.images[0]?.url ?? ''
+  const categoryName = pkg.category[0]?.name ?? ''
 
   // ── WhatsApp link ──
-  const waMsg = encodeURIComponent(`Hi, I'm interested in the package: ${pkg.name}`)
+  const waMsg = encodeURIComponent(`Hi, I'm interested in the package: ${pkg.title}`)
   const waLink = `https://wa.me/${WA_NUMBER}?text=${waMsg}`
 
   // ── Scroll-spy sections ──
@@ -162,7 +115,7 @@ export default async function PackagePage({
   const hasBestTimeSection = Boolean(weatherSummary) || bestMonthsArr.length > 0
 
   const sections: ScrollSpySection[] = [
-    ...(pkg.short_description ? [{ id: 'section-overview', label: 'Overview' }] : []),
+    ...(shortDescriptionHtml ? [{ id: 'section-overview', label: 'Overview' }] : []),
     ...(itineraryDays.length > 0 ? [{ id: 'section-itinerary', label: 'Itinerary' }] : []),
     ...(mapQuery ? [{ id: 'section-map', label: 'Map' }] : []),
     ...(hasInclusionsSection ? [{ id: 'section-inclusions', label: 'Inclusions & Exclusions' }] : []),
@@ -178,7 +131,7 @@ export default async function PackagePage({
         {heroImage && (
           <Image
             src={heroImage}
-            alt={pkg.name}
+            alt={pkg.title}
             fill
             priority
             sizes="100vw"
@@ -214,7 +167,7 @@ export default async function PackagePage({
                 fontFamily: 'var(--font-playfair)',
               }}
             >
-              {pkg.name}
+              {pkg.title}
             </h1>
 
             {/* Route strip */}
@@ -230,7 +183,7 @@ export default async function PackagePage({
 
             {/* Share button */}
             <div style={{ marginBottom: '14px' }}>
-              <ShareButton packageName={pkg.name} />
+              <ShareButton packageName={pkg.title} />
             </div>
 
             {/* Badges */}
@@ -250,7 +203,7 @@ export default async function PackagePage({
                   🕐 {duration}
                 </span>
               )}
-              {people && (
+              {people > 0 && (
                 <span
                   style={{
                     background: 'rgba(255,255,255,0.18)',
@@ -295,7 +248,7 @@ export default async function PackagePage({
               {categoryName && (
                 <>
                   <li>
-                    <Link href={`/packages?category=${pkg.categories[0]?.slug ?? ''}`} style={{ color: '#1E6B2E', fontWeight: 500 }}>
+                    <Link href={`/packages?category=${pkg.category[0]?.slug ?? ''}`} style={{ color: '#1E6B2E', fontWeight: 500 }}>
                       {categoryName}
                     </Link>
                   </li>
@@ -303,7 +256,7 @@ export default async function PackagePage({
                 </>
               )}
               <li style={{ color: '#888888' }}>
-                {pkg.name.length > 40 ? pkg.name.slice(0, 40) + '…' : pkg.name}
+                {pkg.title.length > 40 ? pkg.title.slice(0, 40) + '…' : pkg.title}
               </li>
             </ol>
           </nav>
@@ -321,12 +274,12 @@ export default async function PackagePage({
             <SectionScrollSpy sections={sections} />
 
             {/* 1. Overview */}
-            {pkg.short_description && (
+            {shortDescriptionHtml && (
               <Section id="section-overview" title="Overview">
                 <div
                   className="prose-content"
                   style={{ fontSize: '15px', color: '#4A4A4A', lineHeight: 1.8 }}
-                  dangerouslySetInnerHTML={{ __html: pkg.short_description }}
+                  dangerouslySetInnerHTML={{ __html: shortDescriptionHtml }}
                 />
               </Section>
             )}
@@ -511,6 +464,32 @@ export default async function PackagePage({
               waLink={waLink}
               fmt={fmt}
             />
+
+            {pkg.brochure && (
+              <Link
+                href={pkg.brochure.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 transition-colors duration-200 hover:bg-[#F7FAF7]"
+                style={{
+                  marginTop: '16px',
+                  border: '1px solid #E0EBE1',
+                  borderRadius: '12px',
+                  padding: '14px',
+                  color: '#1E6B2E',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  background: '#FFFFFF',
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E6B2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Download Brochure
+              </Link>
+            )}
           </div>
         </div>
       </div>
