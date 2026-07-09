@@ -1,8 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getAllTaxonomyLookups } from '@/lib/hotels-api'
-import { getFilteredHotels } from '@/lib/getFilteredHotels'
-import { decodeHtmlEntities } from '@/lib/decodeHtmlEntities'
+import { getAllLocations, getFilteredPayloadHotels, formatEnumLabel, formatAmenityLabel } from '@/lib/payload-hotels-api'
 import HotelsClient, { type TaxonomyOptions } from '@/components/hotels/HotelsClient'
 
 const SITE_URL = 'https://bonvoyagers.co'
@@ -12,24 +10,45 @@ export const metadata: Metadata = {
   description: 'Browse every hotel and stay from Bon Voyagers. Filter by location, property type, amenities and price to find your perfect stay.',
 }
 
-function optionsFromLookup(lookup: Map<number, string>): string[] {
-  return Array.from(lookup.values()).sort((a, b) => a.localeCompare(b))
+// Real known enum values from the Hotels collection schema (Payload has no
+// taxonomy lookup for these, they are plain snake_case strings on the doc).
+const PROPERTY_CATEGORIES = ['economy', 'elite', 'heritage', 'luxury', 'premium']
+const PROPERTY_TYPES = ['hotel', 'homestay', 'resort', 'bungalow', 'tented_camp']
+const AMENITIES = [
+  'wifi', 'ac', 'room_heater', 'geyser_hot_water', 'television', 'balcony',
+  'parking', 'room_service', 'restaurant', 'travel_desk_tour_assistance',
+  'bonfire', 'kids_play_area', 'elevator', 'power_backup',
+]
+const FOOD_TYPES = ['jain_food', 'non_veg', 'pure_veg']
+const VIEW_TYPES = [
+  'mountain_view', 'snow_peak_view', 'valley_view', 'sea_view', 'river_view',
+  'lake_view', 'garden_view', 'forest_view', 'pool_view', 'city_view',
+  'courtyard_view', 'standard_view',
+]
+const COMPATIBILITY = ['couple_friendly', 'local_id_friendly', 'pets_allowed']
+
+function formatOptions(values: string[]): string[] {
+  return values.map(formatEnumLabel).sort((a, b) => a.localeCompare(b))
+}
+
+function formatAmenityOptions(values: string[]): string[] {
+  return values.map(formatAmenityLabel).sort((a, b) => a.localeCompare(b))
 }
 
 export default async function AllHotelsPage() {
-  const [lookups, initial] = await Promise.all([
-    getAllTaxonomyLookups(),
-    getFilteredHotels({ cursor: 1 }),
+  const [locations, initial] = await Promise.all([
+    getAllLocations(),
+    getFilteredPayloadHotels({ cursor: 1 }),
   ])
 
   const taxonomyOptions: TaxonomyOptions = {
-    hotel_locations: optionsFromLookup(lookups.hotel_locations),
-    hotel_property_category: optionsFromLookup(lookups.hotel_property_category),
-    hotel_property_type: optionsFromLookup(lookups.hotel_property_type),
-    hotel_amenities: optionsFromLookup(lookups.hotel_amenities),
-    hotel_food_type: optionsFromLookup(lookups.hotel_food_type),
-    hotel_view_type: optionsFromLookup(lookups.hotel_view_type),
-    hotel_compatibility: optionsFromLookup(lookups.hotel_compatibility),
+    hotel_locations: locations,
+    hotel_property_category: formatOptions(PROPERTY_CATEGORIES),
+    hotel_property_type: formatOptions(PROPERTY_TYPES),
+    hotel_amenities: formatAmenityOptions(AMENITIES),
+    hotel_food_type: formatAmenityOptions(FOOD_TYPES),
+    hotel_view_type: formatOptions(VIEW_TYPES),
+    hotel_compatibility: formatOptions(COMPATIBILITY),
   }
 
   const totalCount = initial.totalCount
@@ -56,7 +75,7 @@ export default async function AllHotelsPage() {
           '@type': 'ListItem',
           position: i + 1,
           url: `${SITE_URL}/hotel/${h.slug}`,
-          name: decodeHtmlEntities(h.title),
+          name: h.title,
         })),
       },
     ],

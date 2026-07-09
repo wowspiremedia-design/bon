@@ -1,8 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getHotelBySlug } from '@/lib/hotels-api'
-import { decodeHtmlEntities } from '@/lib/decodeHtmlEntities'
+import { getPayloadHotelBySlug } from '@/lib/payload-hotels-api'
 import HotelGallery from '@/components/hotels/HotelGallery'
 import CheckAvailabilityButton from '@/components/hotels/CheckAvailabilityButton'
 import HotelWhatsAppFloat from '@/components/hotels/HotelWhatsAppFloat'
@@ -40,9 +39,9 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const hotel = await getHotelBySlug(slug)
+  const hotel = await getPayloadHotelBySlug(slug)
   if (!hotel) return {}
-  const title = decodeHtmlEntities(hotel.title)
+  const title = hotel.title
   const metaTitle = hotel.location ? `${title} | ${hotel.location} | Bon Voyagers` : `${title} | Bon Voyagers`
   const metaDescription = hotel.overview ? truncateAtWordBoundary(hotel.overview, 155) : undefined
   return {
@@ -63,10 +62,10 @@ export default async function HotelPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const hotel = await getHotelBySlug(slug)
+  const hotel = await getPayloadHotelBySlug(slug)
   if (!hotel) notFound()
 
-  const title = decodeHtmlEntities(hotel.title)
+  const title = hotel.title
 
   const hasAmenitiesSection = hotel.amenities.length > 0 || hotel.foodType.length > 0
   const hasRoomsSection = hotel.roomPricing.length > 0

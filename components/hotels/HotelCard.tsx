@@ -1,14 +1,13 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { Hotel } from '@/lib/hotels-api'
-import { decodeHtmlEntities } from '@/lib/decodeHtmlEntities'
 import { AmenityIcon } from './AmenityIcon'
 import ShareHotelButton from '@/components/hotels/ShareHotelButton'
 
 const fmt = (n: number) => '₹' + n.toLocaleString('en-IN')
 
 export default function HotelCard({ hotel }: { hotel: Hotel }) {
-  const title = decodeHtmlEntities(hotel.title)
+  const title = hotel.title
   const visibleAmenities = hotel.amenities.slice(0, 3)
 
   return (

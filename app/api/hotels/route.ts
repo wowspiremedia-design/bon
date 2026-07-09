@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getFilteredHotels } from '@/lib/getFilteredHotels'
+import { getFilteredPayloadHotels } from '@/lib/payload-hotels-api'
 
 function parseList(value: string | null): string[] {
   return (value ?? '')
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
   const cursor = cursorRaw !== null ? Math.max(1, parseInt(cursorRaw, 10) || 1) : 1
 
   try {
-    const result = await getFilteredHotels({
+    const result = await getFilteredPayloadHotels({
       location,
       propertyCategory,
       propertyType,
