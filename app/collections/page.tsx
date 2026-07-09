@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { getActiveCollections, getCollectionCoverImage } from '@/lib/api'
+import { getActiveCollections, getCollectionCoverImage } from '@/lib/payload-api'
 
 export const metadata: Metadata = {
   title: 'Curated Travel Collections | Bon Voyagers',
@@ -43,13 +43,13 @@ export default async function CollectionsPage() {
         {validCollections.map(({ col, image }) => (
           <Link
             key={col.id}
-            href={`/collection/${col.collection_slug}`}
+            href={`/collection/${col.slug}`}
             className="group relative block overflow-hidden rounded-[20px] transition-transform duration-300 ease-out hover:scale-[1.02]"
             style={{ aspectRatio: '4 / 3' }}
           >
             <Image
               src={image}
-              alt={col.collection_name}
+              alt={col.name}
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               style={{ objectFit: 'cover' }}
@@ -76,7 +76,7 @@ export default async function CollectionsPage() {
                   marginBottom: '6px',
                 }}
               >
-                {col.collection_name}
+                {col.name}
               </h2>
               <span style={{ color: '#D64545', fontSize: '14px', fontWeight: 600 }}>
                 Explore Collection →

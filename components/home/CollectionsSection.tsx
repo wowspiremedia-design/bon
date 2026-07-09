@@ -1,7 +1,12 @@
 import CollectionRow from './CollectionRow'
-import { getActiveCollections, getPackages, getCategoryPackageCounts, type Collection } from '@/lib/api'
-import { getDestinationSlugForCategory } from '@/lib/destinationCategoryLinks'
-import { mapProduct } from '@/lib/mapProduct'
+import {
+  getActiveCollections,
+  getCollectionPackages,
+  getPackagesByCategoryLite,
+  mapPayloadPackageToCard,
+  type PayloadCollection,
+} from '@/lib/payload-api'
+import { lexicalToHtml } from '@/lib/lexicalToHtml'
 import type { PackageCardProps } from '@/components/shared/PackageCard'
 import type { DestinationCardProps } from '@/components/home/DestinationCard'
 
@@ -58,62 +63,31 @@ function getEmoji(name: string): string {
   return '✦'
 }
 
-async function fetchPackagesForCollection(col: Collection): Promise<PackageCardProps[]> {
+async function fetchPackagesForCollection(col: PayloadCollection): Promise<PackageCardProps[]> {
   try {
-    let products: Awaited<ReturnType<typeof getPackages>> = []
-
-    if (col.collection_type?.startsWith('type_2')) {
-      const src = col.direct_package_collection
-      if (src?.package_source_type === 'auto_category' && src.package_category?.length) {
-        const entry = src.package_category[0]
-        const catId = typeof entry === 'object' ? entry.term_id : entry
-        if (catId) products = await getPackages({ category: catId, perPage: 8 })
-      } else if (src?.package_source_type === 'auto_tag' && src.package_tag?.length) {
-        const entry = src.package_tag[0]
-        const tagId = typeof entry === 'object' ? entry.term_id : entry
-        if (tagId) products = await getPackages({ tag: tagId, perPage: 8 })
-      }
-    } else if (col.collection_type?.startsWith('type_1')) {
-      const catEntry = col.destinations?.[0]?.package_category?.[0]
-      const catId = typeof catEntry === 'object' ? catEntry?.term_id : catEntry
-      if (catId) products = await getPackages({ category: catId, perPage: 8 })
-    }
-
-    return products.map((p) => mapProduct(p))
+    const products = await getCollectionPackages(col)
+    return products.slice(0, 8).map((p) => mapPayloadPackageToCard(p))
   } catch {
     return []
   }
 }
 
-async function fetchDestinationCardsForCollection(col: Collection): Promise<DestinationCardProps[]> {
-  if (!col.destinations?.length) return []
+async function fetchDestinationCardsForCollection(col: PayloadCollection): Promise<DestinationCardProps[]> {
+  const results = await Promise.all(
+    col.destinations.map(async (dest) => {
+      if (!dest.packageCategory) return null
+      const lite = await getPackagesByCategoryLite(dest.packageCategory.id)
+      const count = lite.length
+      if (count === 0) return null
 
-  const catIdByIndex: (number | null)[] = col.destinations.map((dest) => {
-    const catEntry = dest.package_category?.[0]
-    const catId = typeof catEntry === 'object' ? catEntry?.term_id : catEntry
-    return catId ?? null
-  })
-
-  const validCatIds = catIdByIndex.filter((id): id is number => id !== null)
-  const countMap = await getCategoryPackageCounts(validCatIds)
-
-  const results = col.destinations.map((dest, i) => {
-    const catId = catIdByIndex[i]
-    if (!catId) return null
-
-    const slug = getDestinationSlugForCategory(catId)
-    if (!slug) return null
-
-    const count = countMap[catId] ?? 0
-    if (count === 0) return null
-
-    return {
-      name: dest.destination_title ?? '',
-      image: dest.destination_image ?? '',
-      slug,
-      count,
-    }
-  })
+      return {
+        name: dest.title,
+        image: dest.featuredImage?.url ?? '',
+        slug: dest.slug,
+        count,
+      }
+    }),
+  )
 
   return results.filter((r): r is NonNullable<typeof r> => r !== null)
 }
@@ -123,7 +97,7 @@ export default async function CollectionsSection() {
 
   const rows = await Promise.all(
     activeCollections.map(async (col) => {
-      if (col.collection_type?.startsWith('type_1')) {
+      if (col.collectionType === 'destination_based') {
         return {
           col,
           packages: [] as PackageCardProps[],
@@ -200,15 +174,15 @@ export default async function CollectionsSection() {
       {validRows.map(({ col, packages, destinations }, i) => (
         <CollectionRow
           key={col.id}
-          name={col.collection_name}
-          slug={col.collection_slug}
-          description={col.collection_description}
-          emoji={getEmoji(col.collection_name)}
-          viewAllHref={`/collection/${col.collection_slug}`}
+          name={col.name}
+          slug={col.slug}
+          description={lexicalToHtml(col.description).replace(/<[^>]*>/g, '').trim()}
+          emoji={getEmoji(col.name)}
+          viewAllHref={`/collection/${col.slug}`}
           packages={packages}
           cardType={destinations.length > 0 ? 'destination' : 'package'}
           destinations={destinations}
-          bgColor={getCollectionBg(col.collection_name, i)}
+          bgColor={getCollectionBg(col.name, i)}
         />
       ))}
     </>

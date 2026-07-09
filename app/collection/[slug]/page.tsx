@@ -4,67 +4,67 @@ import Image from 'next/image'
 import {
   getCollectionBySlug,
   getCollectionCoverImage,
-  getPackages,
-  getCategoryPackageCounts,
-  type Collection,
-  type WCProduct,
-} from '@/lib/api'
-import { getDestinationSlugForCategory } from '@/lib/destinationCategoryLinks'
-import { mapProduct } from '@/lib/mapProduct'
+  getCollectionPackages,
+  getPackagesByCategoryLite,
+  type PayloadCollection,
+  type PayloadPackage,
+} from '@/lib/payload-api'
+import { lexicalToHtml } from '@/lib/lexicalToHtml'
 import PackageCard, { type PackageCardProps } from '@/components/shared/PackageCard'
 import DestinationCard, { type DestinationCardProps } from '@/components/home/DestinationCard'
 import ShareCollectionButton from '@/components/collection/ShareCollectionButton'
 
-// ── Package resolution (type_2 / direct package collections) ───────────────────
+// ── Mapping ──────────────────────────────────────────────────────────────────
 
-async function fetchAllPackagesForCollection(col: Collection): Promise<WCProduct[]> {
-  let products: WCProduct[] = []
+function mapPayloadPackageToCard(pkg: PayloadPackage): PackageCardProps {
+  const discount = pkg.regularPrice > 0
+    ? Math.round((1 - pkg.price / pkg.regularPrice) * 100)
+    : 0
 
-  const src = col.direct_package_collection
-  if (src?.package_source_type === 'auto_category' && src.package_category?.length) {
-    const entry = src.package_category[0]
-    const catId = typeof entry === 'object' ? entry.term_id : entry
-    if (catId) products = await getPackages({ category: catId, perPage: 100 })
-  } else if (src?.package_source_type === 'auto_tag' && src.package_tag?.length) {
-    const entry = src.package_tag[0]
-    const tagId = typeof entry === 'object' ? entry.term_id : entry
-    if (tagId) products = await getPackages({ tag: tagId, perPage: 100 })
+  const catNames = pkg.category.map((c) => c.name.toLowerCase())
+  const badgeType: PackageCardProps['badgeType'] = pkg.onSale && discount > 20
+    ? 'deal'
+    : catNames.some((n) => n.includes('honeymoon'))
+      ? 'honeymoon'
+      : null
+
+  const destination = (pkg.category[0]?.name ?? '').replace(' Packages', '').trim()
+
+  return {
+    id: pkg.id,
+    slug: pkg.slug,
+    title: pkg.title,
+    image: pkg.images[0]?.url ?? '',
+    price: pkg.price,
+    regularPrice: pkg.regularPrice,
+    onSale: pkg.onSale,
+    duration: pkg.duration,
+    rating: 0,
+    reviewCount: 0,
+    destination,
+    badgeType,
+    route: pkg.route,
   }
-
-  return products
 }
 
-// ── Destination card resolution (type_1 / destination based collections) ───────
+// ── Destination card resolution (destination_based collections) ───────────────
 
-async function fetchDestinationCardsForCollection(col: Collection): Promise<DestinationCardProps[]> {
-  if (!col.destinations?.length) return []
+async function fetchDestinationCardsForCollection(col: PayloadCollection): Promise<DestinationCardProps[]> {
+  const results = await Promise.all(
+    col.destinations.map(async (dest) => {
+      if (!dest.packageCategory) return null
+      const lite = await getPackagesByCategoryLite(dest.packageCategory.id)
+      const count = lite.length
+      if (count === 0) return null
 
-  const catIdByIndex: (number | null)[] = col.destinations.map((dest) => {
-    const catEntry = dest.package_category?.[0]
-    const catId = typeof catEntry === 'object' ? catEntry?.term_id : catEntry
-    return catId ?? null
-  })
-
-  const validCatIds = catIdByIndex.filter((id): id is number => id !== null)
-  const countMap = await getCategoryPackageCounts(validCatIds)
-
-  const results = col.destinations.map((dest, i) => {
-    const catId = catIdByIndex[i]
-    if (!catId) return null
-
-    const slug = getDestinationSlugForCategory(catId)
-    if (!slug) return null
-
-    const count = countMap[catId] ?? 0
-    if (count === 0) return null
-
-    return {
-      name: dest.destination_title ?? '',
-      image: dest.destination_image ?? '',
-      slug,
-      count,
-    }
-  })
+      return {
+        name: dest.title,
+        image: dest.featuredImage?.url ?? '',
+        slug: dest.slug,
+        count,
+      }
+    }),
+  )
 
   return results.filter((r): r is NonNullable<typeof r> => r !== null)
 }
@@ -79,8 +79,8 @@ export async function generateMetadata({
   const { slug } = await params
   const col = await getCollectionBySlug(slug)
   if (!col) return {}
-  const title = col.collection_name
-  const description = (col.collection_description || 'Discover a curated travel collection by Bon Voyagers.')
+  const title = col.name
+  const description = (lexicalToHtml(col.description) || 'Discover a curated travel collection by Bon Voyagers.')
     .replace(/<[^>]*>/g, '')
     .trim()
     .slice(0, 160)
@@ -101,23 +101,19 @@ export default async function CollectionPage({
   const col = await getCollectionBySlug(slug)
   if (!col) notFound()
 
-  const isDestinationBased = col.collection_type?.startsWith('type_1') ?? false
+  const isDestinationBased = col.collectionType === 'destination_based'
 
   const [coverImage, packages, destinations] = await Promise.all([
     getCollectionCoverImage(col),
     isDestinationBased
       ? Promise.resolve<PackageCardProps[]>([])
-      : fetchAllPackagesForCollection(col).then((products) => products.map((p) => mapProduct(p))),
+      : getCollectionPackages(col).then((products) => products.map((p) => mapPayloadPackageToCard(p))),
     isDestinationBased
       ? fetchDestinationCardsForCollection(col)
       : Promise.resolve<DestinationCardProps[]>([]),
   ])
 
-  const descriptionParagraphs = (col.collection_description || '')
-    .replace(/<[^>]*>/g, '')
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
+  const descriptionHtml = lexicalToHtml(col.description)
 
   return (
     <>
@@ -126,7 +122,7 @@ export default async function CollectionPage({
         {coverImage && (
           <Image
             src={coverImage}
-            alt={col.collection_name}
+            alt={col.name}
             fill
             sizes="100vw"
             style={{ objectFit: 'cover' }}
@@ -153,10 +149,10 @@ export default async function CollectionPage({
             className="font-display font-bold mb-4"
             style={{ color: '#FFFFFF', fontSize: 'clamp(32px, 5vw, 48px)', lineHeight: 1.2 }}
           >
-            {col.collection_name}
+            {col.name}
           </h1>
           <div className="mb-5" style={{ width: '48px', height: '2px', background: '#C8A96A' }} />
-          <ShareCollectionButton title={col.collection_name} />
+          <ShareCollectionButton title={col.name} />
         </div>
       </section>
 
@@ -166,16 +162,12 @@ export default async function CollectionPage({
           className="font-display font-bold text-center mb-6"
           style={{ color: '#1A1A1A', fontSize: 'clamp(24px, 3vw, 32px)' }}
         >
-          Discover {col.collection_name}
+          Discover {col.name}
         </h2>
 
-        <div className="mx-auto text-center" style={{ maxWidth: '700px', color: '#6B7280', lineHeight: 1.8 }}>
-          {descriptionParagraphs.length > 0 ? (
-            descriptionParagraphs.map((paragraph, i) => (
-              <p key={i} className="mb-4">
-                {paragraph}
-              </p>
-            ))
+        <div className="mx-auto text-center [&_p]:mb-4" style={{ maxWidth: '700px', color: '#6B7280', lineHeight: 1.8 }}>
+          {descriptionHtml ? (
+            <div dangerouslySetInnerHTML={{ __html: descriptionHtml }} />
           ) : (
             <p>Discover a curated travel collection by Bon Voyagers.</p>
           )}
@@ -189,7 +181,7 @@ export default async function CollectionPage({
             className="font-display font-bold mb-2"
             style={{ color: '#1A1A1A', fontSize: 'clamp(24px, 3vw, 32px)' }}
           >
-            Explore {col.collection_name} Packages
+            Explore {col.name} Packages
           </h2>
           <p style={{ color: '#6B7280', fontSize: '15px' }}>
             Curated journeys designed for comfort, authenticity, and adventure.
