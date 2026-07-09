@@ -25,6 +25,50 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-display: var(--font-playfair);
+
+  /* Type scale raw values, consumed by the text-* utilities defined below */
+  --typescale-hero-title-size: clamp(2.25rem, 6vw, 4.5rem);
+  --typescale-hero-title-leading: 1.15;
+  --typescale-hero-title-tracking: -0.02em;
+
+  --typescale-page-title-size: clamp(1.75rem, 4vw, 2.75rem);
+  --typescale-page-title-leading: 1.2;
+  --typescale-page-title-tracking: -0.01em;
+
+  --typescale-section-heading-size: clamp(1.5rem, 3vw, 2rem);
+  --typescale-section-heading-leading: 1.25;
+  --typescale-section-heading-tracking: 0em;
+
+  --typescale-card-heading-size: clamp(1.1rem, 2.5vw, 1.4rem);
+  --typescale-card-heading-leading: 1.3;
+  --typescale-card-heading-tracking: 0em;
+
+  --typescale-small-heading-size: 1rem;
+  --typescale-small-heading-leading: 1.3;
+  --typescale-small-heading-tracking: 0em;
+
+  --typescale-body-large-size: 1.125rem;
+  --typescale-body-large-leading: 1.7;
+
+  --typescale-body-size: 0.9375rem;
+  --typescale-body-leading: 1.8;
+
+  --typescale-body-small-size: 0.875rem;
+  --typescale-body-small-leading: 1.6;
+
+  --typescale-eyebrow-size: 0.75rem;
+  --typescale-eyebrow-tracking: 0.04em;
+
+  --typescale-ui-label-size: 0.8125rem;
+  --typescale-ui-label-leading: 1.5;
+
+  --typescale-caption-size: 0.6875rem;
+  --typescale-caption-leading: 1.5;
+  --typescale-caption-tracking: 0.02em;
+
+  --typescale-button-large-size: 0.9375rem;
+  --typescale-button-size: 0.875rem;
+  --typescale-button-small-size: 0.8125rem;
 }
 
 @theme {
@@ -52,6 +96,110 @@ body {
   background: #FFFFFF;
   color: var(--color-text-dark);
   font-family: var(--font-sans), sans-serif;
+}
+
+/* Type scale utilities — Playfair Display headings, Inter body/labels/buttons */
+
+@utility text-hero-title {
+  font-family: var(--font-display);
+  font-size: var(--typescale-hero-title-size);
+  line-height: var(--typescale-hero-title-leading);
+  letter-spacing: var(--typescale-hero-title-tracking);
+  font-weight: 700;
+}
+
+@utility text-page-title {
+  font-family: var(--font-display);
+  font-size: var(--typescale-page-title-size);
+  line-height: var(--typescale-page-title-leading);
+  letter-spacing: var(--typescale-page-title-tracking);
+  font-weight: 700;
+}
+
+@utility text-section-heading {
+  font-family: var(--font-display);
+  font-size: var(--typescale-section-heading-size);
+  line-height: var(--typescale-section-heading-leading);
+  letter-spacing: var(--typescale-section-heading-tracking);
+  font-weight: 700;
+}
+
+@utility text-card-heading {
+  font-family: var(--font-display);
+  font-size: var(--typescale-card-heading-size);
+  line-height: var(--typescale-card-heading-leading);
+  letter-spacing: var(--typescale-card-heading-tracking);
+  font-weight: 700;
+}
+
+@utility text-small-heading {
+  font-family: var(--font-display);
+  font-size: var(--typescale-small-heading-size);
+  line-height: var(--typescale-small-heading-leading);
+  letter-spacing: var(--typescale-small-heading-tracking);
+  font-weight: 700;
+}
+
+@utility text-body-large {
+  font-family: var(--font-sans);
+  font-size: var(--typescale-body-large-size);
+  line-height: var(--typescale-body-large-leading);
+  font-weight: 400;
+}
+
+@utility text-body {
+  font-family: var(--font-sans);
+  font-size: var(--typescale-body-size);
+  line-height: var(--typescale-body-leading);
+  font-weight: 400;
+}
+
+@utility text-body-small {
+  font-family: var(--font-sans);
+  font-size: var(--typescale-body-small-size);
+  line-height: var(--typescale-body-small-leading);
+  font-weight: 400;
+}
+
+@utility text-eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--typescale-eyebrow-size);
+  font-weight: 700;
+  letter-spacing: var(--typescale-eyebrow-tracking);
+  text-transform: uppercase;
+}
+
+@utility text-ui-label {
+  font-family: var(--font-sans);
+  font-size: var(--typescale-ui-label-size);
+  font-weight: 600;
+  line-height: var(--typescale-ui-label-leading);
+}
+
+@utility text-caption {
+  font-family: var(--font-sans);
+  font-size: var(--typescale-caption-size);
+  font-weight: 600;
+  line-height: var(--typescale-caption-leading);
+  letter-spacing: var(--typescale-caption-tracking);
+}
+
+@utility text-button-large {
+  font-family: var(--font-sans);
+  font-size: var(--typescale-button-large-size);
+  font-weight: 700;
+}
+
+@utility text-button {
+  font-family: var(--font-sans);
+  font-size: var(--typescale-button-size);
+  font-weight: 700;
+}
+
+@utility text-button-small {
+  font-family: var(--font-sans);
+  font-size: var(--typescale-button-small-size);
+  font-weight: 600;
 }
 
 /* Global card defaults — apply via var(--card-shadow) and var(--card-radius) */
