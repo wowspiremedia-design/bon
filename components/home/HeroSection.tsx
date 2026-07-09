@@ -67,10 +67,7 @@ export default function HeroSection({ images, label, headline, subtitle }: Props
         <p className="text-xs md:text-sm uppercase tracking-[0.35em] text-[#C8A96A] mb-4 font-medium">
           {displayLabel}
         </p>
-        <h1
-          className="font-bold text-white leading-tight mb-4"
-          style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(2.25rem, 6vw, 4.5rem)' }}
-        >
+        <h1 className="text-hero-title text-white mb-4">
           {displayHeadline}
         </h1>
         <div className="w-20 h-[2px] bg-[#C8A96A] mb-6" />

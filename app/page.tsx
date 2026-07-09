@@ -6,19 +6,18 @@ import PopularDestinations from '@/components/home/PopularDestinations'
 import CollectionsSection from '@/components/home/CollectionsSection'
 import CTASection from '@/components/home/CTASection'
 import PageLoader from '@/components/layout/PageLoader'
-import { getPackages, getHeroSlides } from '@/lib/api'
+import { getDestinationHeroSlides, getCategories, getPackagesByCategory, mapPayloadPackageToCard } from '@/lib/payload-api'
 import type { PackageCardProps } from '@/components/shared/PackageCard'
-import { mapProduct } from '@/lib/mapProduct'
 
 // ── Category config ────────────────────────────────────────────────────────────
 
-const CATEGORIES = [
-  { id: 15,  label: 'Kashmir' },
-  { id: 24,  label: 'Andaman' },
-  { id: 122, label: 'Meghalaya' },
-  { id: 22,  label: 'Ladakh' },
-  { id: 25,  label: 'Bhutan' },
-  { id: 101, label: 'Darjeeling' },
+const CATEGORY_CONFIG = [
+  { slug: 'kashmir-packages', label: 'Kashmir' },
+  { slug: 'andaman-packages', label: 'Andaman' },
+  { slug: 'meghalaya-packages', label: 'Meghalaya' },
+  { slug: 'ladakh-packages', label: 'Ladakh' },
+  { slug: 'exclusive-bhutan-packages', label: 'Bhutan' },
+  { slug: 'best-darjeeling-packages-sale', label: 'Darjeeling' },
 ]
 
 const TAB_LABELS = ['All', 'Kashmir', 'Andaman', 'Meghalaya', 'Ladakh', 'Bhutan', 'Darjeeling']
@@ -26,22 +25,32 @@ const TAB_LABELS = ['All', 'Kashmir', 'Andaman', 'Meghalaya', 'Ladakh', 'Bhutan'
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default async function Home() {
-  const [heroSlides, packageResults] = await Promise.all([
-    getHeroSlides(),
-    Promise.all(CATEGORIES.map(({ id }) => getPackages({ category: id, perPage: 2 }))),
+  const [heroSlides, allCategories] = await Promise.all([
+    getDestinationHeroSlides(),
+    getCategories(),
   ])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const heroImages = heroSlides.map((s: any) => s.image).filter(Boolean)
+  const categories = CATEGORY_CONFIG
+    .map(({ slug, label }) => {
+      const cat = allCategories.find((c) => c.slug === slug)
+      return cat ? { id: cat.id, label } : null
+    })
+    .filter((c): c is { id: number; label: string } => c !== null)
+
+  const packageResults = await Promise.all(
+    categories.map(({ id }) => getPackagesByCategory(id, 1, 2).then((r) => r.packages)),
+  )
+
+  const heroImages = heroSlides.map((s) => s.image).filter(Boolean)
 
   const seen = new Set<number>()
   const packages: PackageCardProps[] = []
 
-  for (let i = 0; i < CATEGORIES.length; i++) {
+  for (let i = 0; i < categories.length; i++) {
     for (const product of packageResults[i].slice(0, 2)) {
       if (!seen.has(product.id)) {
         seen.add(product.id)
-        packages.push(mapProduct(product, CATEGORIES[i].label))
+        packages.push(mapPayloadPackageToCard(product, categories[i].label))
         if (packages.length === 12) break
       }
     }

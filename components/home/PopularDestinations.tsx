@@ -1,62 +1,13 @@
-'use client'
-
 import Image from 'next/image'
 import Link from 'next/link'
+import { getDestinations } from '@/lib/payload-api'
 
-const DESTINATIONS = [
-  {
-    name: 'Kashmir',
-    slug: 'kashmir-tour-package',
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2024/10/kashmir.jpg',
-  },
-  {
-    name: 'Andaman',
-    slug: 'andaman-packages',
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2018/12/andaman.jpg',
-  },
-  {
-    name: 'Meghalaya',
-    slug: 'stunning-meghalaya-trip-package',
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2025/09/10-2-150x150.webp',
-  },
-  {
-    name: 'Ladakh',
-    slug: 'ladakh-tour-packages',
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2024/11/ladakh-package.jpg',
-  },
-  {
-    name: 'Bhutan',
-    slug: 'bhutan-tourism-packages',
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2025/09/Best-Europe-Trip-Package054-150x150.webp',
-  },
-  {
-    name: 'Darjeeling',
-    slug: 'darjeeling-tour-package',
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2025/08/manali-package-7-150x150.webp',
-  },
-  {
-    name: 'Kerala',
-    slug: 'kerala-trip-package-best-places',
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2025/08/kerala-trip-package-11-150x150.webp',
-  },
-  {
-    name: 'Rajasthan',
-    slug: 'rajasthan-tour-heritage-adventure',
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2025/08/2-4-150x150.webp',
-  },
-  {
-    name: 'Sikkim',
-    slug: 'sikkim-tourism-himalayan-adventures',
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2025/09/Arunachal-travel-package-with-Tawang-monastery-Ziro-valley-tribal-festival-Namdapha-jungle-6-150x150.webp',
-  },
-  {
-    name: 'Nepal',
-    slug: 'best-nepal-tour-package-destinations',
-    image: 'https://cms.bonvoyagers.co/wp-content/uploads/2025/07/nepal-tour-package-4.png',
-  },
-]
+export default async function PopularDestinations() {
+  const destinations = await getDestinations()
+  const items = destinations
+    .filter((d) => d.featuredImage !== null)
+    .slice(0, 10)
 
-export default function PopularDestinations() {
   return (
     <>
       <style>{`
@@ -115,9 +66,9 @@ export default function PopularDestinations() {
             className="dest-scroll flex gap-6 overflow-x-auto pb-2"
             style={{ scrollbarWidth: 'none' }}
           >
-            {DESTINATIONS.map(({ name, slug, image }) => (
+            {items.map(({ id, title, slug, featuredImage }) => (
               <Link
-                key={slug}
+                key={id}
                 href={`/destination/${slug}`}
                 className="flex flex-col items-center gap-[10px] flex-shrink-0 group"
               >
@@ -127,8 +78,8 @@ export default function PopularDestinations() {
                   style={{ width: '90px', height: '90px' }}
                 >
                   <Image
-                    src={image}
-                    alt={name}
+                    src={featuredImage?.url ?? ''}
+                    alt={title}
                     fill
                     sizes="90px"
                     style={{ objectFit: 'cover' }}
@@ -145,7 +96,7 @@ export default function PopularDestinations() {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {name}
+                  {title}
                 </span>
               </Link>
             ))}

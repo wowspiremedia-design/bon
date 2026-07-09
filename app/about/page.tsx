@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import HeroSection from '@/components/home/HeroSection'
 import CollectionGridCard from '@/components/shared/CollectionGridCard'
-import { getHeroSlides, getCollectionsWithCoverImages } from '@/lib/api'
+import { getDestinationHeroSlides, getActiveCollectionsWithCoverImages } from '@/lib/payload-api'
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -13,12 +13,11 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function AboutPage() {
   const [heroSlides, collections] = await Promise.all([
-    getHeroSlides(),
-    getCollectionsWithCoverImages(),
+    getDestinationHeroSlides(),
+    getActiveCollectionsWithCoverImages(),
   ])
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const heroImages = heroSlides.map((s: any) => s.image).filter(Boolean)
+  const heroImages = heroSlides.map((s) => s.image).filter(Boolean)
   const hospitalityImage = heroImages[1] ?? heroImages[0]
 
   return (
@@ -69,7 +68,7 @@ export default async function AboutPage() {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {collections.map((col) => (
-              <CollectionGridCard key={col.id} name={col.collection_name} slug={col.collection_slug} image={col.coverImage!} />
+              <CollectionGridCard key={col.id} name={col.name} slug={col.slug} image={col.coverImage!} />
             ))}
           </div>
         </div>
