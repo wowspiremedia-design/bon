@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getCategories } from '@/lib/api'
-import { getFilteredPackages } from '@/lib/getFilteredPackages'
+import { getCategories, getFilteredPayloadPackages, getPackagesByCategory } from '@/lib/payload-api'
 import AllPackagesClient from '@/components/packages/AllPackagesClient'
 
 const SITE_URL = 'https://bonvoyagers.co'
@@ -12,10 +11,19 @@ export const metadata: Metadata = {
 }
 
 export default async function AllPackagesPage() {
-  const [categories, initial] = await Promise.all([
+  const [categoriesRaw, initial] = await Promise.all([
     getCategories(),
-    getFilteredPackages({ sort: 'popular', cursor: 1 }),
+    getFilteredPayloadPackages({ sort: 'popular', cursor: 1 }),
   ])
+
+  const categories = await Promise.all(
+    categoriesRaw.map(async (cat) => ({
+      id: cat.id,
+      name: cat.name,
+      slug: cat.slug,
+      count: (await getPackagesByCategory(cat.id, 1, 1)).totalDocs,
+    })),
+  )
 
   const totalCount = initial.totalCount
 

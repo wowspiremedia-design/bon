@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getFilteredPackages, DURATION_BAND_KEYS, type SortValue } from '@/lib/getFilteredPackages'
+import { getFilteredPayloadPackages, DURATION_BAND_KEYS, type SortValue } from '@/lib/payload-api'
 
 const VALID_SORTS: SortValue[] = ['popular', 'price_asc', 'price_desc', 'duration']
 
@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
   const cursor = cursorRaw !== null ? Math.max(1, parseInt(cursorRaw, 10) || 1) : 1
 
   try {
-    const result = await getFilteredPackages({
+    const result = await getFilteredPayloadPackages({
       categories,
       minPrice,
       maxPrice,

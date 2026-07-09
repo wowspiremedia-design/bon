@@ -1,9 +1,42 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getPackages, getCategories } from '@/lib/api'
-import { mapProduct } from '@/lib/mapProduct'
+import { getPackagesByCategory, getCategories, type PayloadPackage } from '@/lib/payload-api'
+import type { PackageCardProps } from '@/components/shared/PackageCard'
 import CategoryPageClient from '@/components/packages/CategoryPageClient'
+
+// ── Mapping ──────────────────────────────────────────────────────────────────
+
+function mapPayloadPackageToCard(pkg: PayloadPackage, destinationOverride?: string): PackageCardProps {
+  const discount = pkg.regularPrice > 0
+    ? Math.round((1 - pkg.price / pkg.regularPrice) * 100)
+    : 0
+
+  const catNames = pkg.category.map((c) => c.name.toLowerCase())
+  const badgeType: PackageCardProps['badgeType'] = pkg.onSale && discount > 20
+    ? 'deal'
+    : catNames.some((n) => n.includes('honeymoon'))
+      ? 'honeymoon'
+      : null
+
+  const destination = destinationOverride ?? (pkg.category[0]?.name ?? '').replace(' Packages', '').trim()
+
+  return {
+    id: pkg.id,
+    slug: pkg.slug,
+    title: pkg.title,
+    image: pkg.images[0]?.url ?? '',
+    price: pkg.price,
+    regularPrice: pkg.regularPrice,
+    onSale: pkg.onSale,
+    duration: pkg.duration,
+    rating: 0,
+    reviewCount: 0,
+    destination,
+    badgeType,
+    route: pkg.route,
+  }
+}
 
 // ── Metadata ───────────────────────────────────────────────────────────────────
 
@@ -40,11 +73,11 @@ export default async function CategoryPage({
   const cat = categories.find((c) => c.slug === slug)
   if (!cat) notFound()
 
-  const products = await getPackages({ category: cat.id, perPage: PER_PAGE, page: currentPage })
+  const { packages: products, totalDocs, totalPages: rawTotalPages } = await getPackagesByCategory(cat.id, currentPage, PER_PAGE)
 
-  const totalPages = Math.max(1, Math.ceil(cat.count / PER_PAGE))
+  const totalPages = Math.max(1, rawTotalPages)
   const destination = cat.name.replace(' Packages', '').replace(/^best\s+/i, '').trim()
-  const packages = products.map((p) => mapProduct(p, destination))
+  const packages = products.map((p) => mapPayloadPackageToCard(p, destination))
 
   return (
     <>
@@ -85,7 +118,7 @@ export default async function CategoryPage({
             {cat.name}
           </h1>
           <p style={{ fontSize: '16px', color: 'rgba(255,255,255,0.80)', margin: 0 }}>
-            {cat.count} curated packages available
+            {totalDocs} curated packages available
           </p>
         </div>
       </div>
@@ -104,7 +137,7 @@ export default async function CategoryPage({
           categorySlug={slug}
           currentPage={currentPage}
           totalPages={totalPages}
-          totalCount={cat.count}
+          totalCount={totalDocs}
           perPage={PER_PAGE}
         />
       </div>
