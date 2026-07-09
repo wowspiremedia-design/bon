@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Flame, Bookmark, Shield, Check, Users, CreditCard } from 'lucide-react'
-import { getPackages } from '@/lib/api'
+import { getOnSalePackages } from '@/lib/payload-api'
 import DealOfferCard from '@/components/deals/DealOfferCard'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 const BADGE_LABELS = ['Best Seller', 'Budget Pick', 'Trending']
 
 export default async function DealsPage() {
-  const onSale = await getPackages({ onSale: true, perPage: 30 })
+  const onSale = await getOnSalePackages(30)
 
   const dealOfDay = onSale.length > 0
     ? onSale[Math.floor(Math.random() * onSale.length)]
@@ -25,9 +25,9 @@ export default async function DealsPage() {
     ? onSale.filter((p) => p.id !== dealOfDay.id).slice(0, 3)
     : []
 
-  const dealOfDayImage = dealOfDay?.images[0]?.src ?? ''
-  const dealOfDayRegular = dealOfDay ? parseFloat(dealOfDay.regular_price) || 0 : 0
-  const dealOfDaySale = dealOfDay ? parseFloat(dealOfDay.price) || 0 : 0
+  const dealOfDayImage = dealOfDay?.images[0]?.url ?? ''
+  const dealOfDayRegular = dealOfDay ? dealOfDay.regularPrice : 0
+  const dealOfDaySale = dealOfDay ? dealOfDay.price : 0
   const dealOfDayDiscount = dealOfDayRegular > 0
     ? Math.round(((dealOfDayRegular - dealOfDaySale) / dealOfDayRegular) * 100)
     : 0
@@ -40,7 +40,7 @@ export default async function DealsPage() {
           <div className="sticky top-0 z-40 bg-black text-white px-4 py-2 flex items-center gap-3 text-sm">
             <Flame className="w-4 h-4 text-[#d90429] animate-pulse flex-shrink-0" aria-hidden="true" />
             <span className="flex-1 truncate">
-              Today&apos;s Best Deal: {dealOfDay.name}
+              Today&apos;s Best Deal: {dealOfDay.title}
             </span>
             <span className="font-bold text-[#d90429] flex-shrink-0">
               ₹{dealOfDaySale.toLocaleString('en-IN')}
@@ -59,7 +59,7 @@ export default async function DealsPage() {
               <div className="relative h-64 sm:h-80">
                 <Image
                   src={dealOfDayImage}
-                  alt={dealOfDay.name}
+                  alt={dealOfDay.title}
                   fill
                   sizes="(max-width: 768px) 100vw, 1024px"
                   className="object-cover"
@@ -70,7 +70,7 @@ export default async function DealsPage() {
                 <span className="block text-[#d90429] text-xs font-semibold uppercase tracking-wide">
                   Deal of the Day
                 </span>
-                <h2 className="font-bold text-xl sm:text-2xl">{dealOfDay.name}</h2>
+                <h2 className="font-bold text-xl sm:text-2xl">{dealOfDay.title}</h2>
 
                 <div className="flex items-center gap-3 flex-wrap">
                   <span className="text-gray-400 line-through text-base">
@@ -137,10 +137,10 @@ export default async function DealsPage() {
               <DealOfferCard
                 key={product.id}
                 slug={product.slug}
-                title={product.name}
-                image={product.images[0]?.src ?? ''}
-                regularPrice={parseFloat(product.regular_price) || 0}
-                salePrice={parseFloat(product.price) || 0}
+                title={product.title}
+                image={product.images[0]?.url ?? ''}
+                regularPrice={product.regularPrice}
+                salePrice={product.price}
                 badgeLabel={BADGE_LABELS[i % BADGE_LABELS.length]}
               />
             ))}
