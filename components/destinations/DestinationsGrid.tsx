@@ -4,15 +4,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 
-const DOMESTIC_TERM_ID = 37
-const INTERNATIONAL_TERM_ID = 135
-
 interface DestinationItem {
   id: number
   slug: string
   title: string
   imageSrc: string | null
-  place_entries?: number[]
+  region?: 'domestic' | 'international'
 }
 
 interface Props {
@@ -26,8 +23,8 @@ export default function DestinationsGrid({ destinations }: Props) {
 
   const filtered = destinations
     .filter((d) => {
-      if (activeTab === 'domestic') return d.place_entries?.includes(DOMESTIC_TERM_ID)
-      if (activeTab === 'international') return d.place_entries?.includes(INTERNATIONAL_TERM_ID)
+      if (activeTab === 'domestic') return d.region === 'domestic'
+      if (activeTab === 'international') return d.region === 'international'
       return true
     })
     .sort((a, b) => a.title.localeCompare(b.title))

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { getDestinationBySlug, getDestinationGallery, getAllPackagesLite } from '@/lib/api'
+import { getDestinationBySlug, getPackagesByCategoryLite } from '@/lib/payload-api'
+import { lexicalToHtml } from '@/lib/lexicalToHtml'
 import DestinationPackagesSection from '@/components/destination/DestinationPackagesSection'
 import DestinationHeroCarousel from '@/components/destination/DestinationHeroCarousel'
 import DestinationTrustStrip from '@/components/destination/DestinationTrustStrip'
@@ -10,45 +11,6 @@ import WhyVisitSection from '@/components/destination/WhyVisitSection'
 import DestinationFinalCTA from '@/components/destination/DestinationFinalCTA'
 import DestinationWhatsAppStrip from '@/components/destination/DestinationWhatsAppStrip'
 import DestinationMobileBar from '@/components/destination/DestinationMobileBar'
-
-// ── Category map ───────────────────────────────────────────────────────────────
-
-const DESTINATION_CATEGORY_MAP: Record<string, number> = {
-  'kashmir':    15,
-  'andaman':    24,
-  'meghalaya':  122,
-  'ladakh':     22,
-  'bhutan':     25,
-  'darjeeling': 101,
-  'sikkim':     115,
-  'north-east': 120,
-  'arunachal':  121,
-  'kerala':     125,
-  'char-dham':  157,
-  'kailash':    151,
-  'nepal':      126,
-  'himachal':   124,
-  'rajasthan':  123,
-  'goa':        119,
-  'varanasi':   152,
-  'haridwar':   153,
-  'ayodhya':    154,
-  'gangasagar': 159,
-  'kedarnath':  156,
-  'dehradun':   155,
-}
-
-function getCategoryId(slug: string, title: string): number | null {
-  const s = slug.toLowerCase()
-  for (const [key, id] of Object.entries(DESTINATION_CATEGORY_MAP)) {
-    if (s.includes(key)) return id
-  }
-  const t = title.toLowerCase()
-  for (const [key, id] of Object.entries(DESTINATION_CATEGORY_MAP)) {
-    if (t.includes(key)) return id
-  }
-  return null
-}
 
 // ── Metadata ───────────────────────────────────────────────────────────────────
 
@@ -60,8 +22,8 @@ export async function generateMetadata({
   const { slug } = await params
   const destination = await getDestinationBySlug(slug)
   if (!destination) return {}
-  const title = destination.title?.rendered || 'Destination'
-  const description = (destination.excerpt?.rendered || '')
+  const title = destination.title || 'Destination'
+  const description = (destination.excerpt || '')
     .replace(/<[^>]*>/g, '')
     .trim()
     .slice(0, 160)
@@ -82,20 +44,16 @@ export default async function DestinationPage({
   const destination = await getDestinationBySlug(slug)
   if (!destination) notFound()
 
-  const title = destination.title?.rendered || ''
-  const excerpt = (destination.excerpt?.rendered || '').replace(/<[^>]*>/g, '').trim()
-  const categoryId = getCategoryId(slug, title)
+  const title = destination.title || ''
+  const excerpt = (destination.excerpt || '').replace(/<[^>]*>/g, '').trim()
 
-  const [galleryImages, packagesLite] = await Promise.all([
-    getDestinationGallery(destination.place_gallery_ids ?? []),
-    categoryId
-      ? getAllPackagesLite({ category: categoryId })
-      : getAllPackagesLite({ search: title }),
-  ])
+  const galleryImages = (destination.gallery ?? []).map((g) => g.url).filter((u): u is string => Boolean(u))
+  const categoryId = destination.packageCategory?.id ?? null
+  const packagesLite = categoryId ? await getPackagesByCategoryLite(categoryId) : []
 
   const waLink = `https://wa.me/919836755550?text=Hi%20Bon%20Voyagers%20%F0%9F%91%8B%0A%0AI'm%20interested%20in%20planning%20a%20trip%20to%20*${encodeURIComponent(title)}*`
-  const destinationDetails = (destination.acf?.destination_details as string | undefined) || ''
-  const hasDetails = Boolean(destinationDetails) && destinationDetails !== 'No Details Available'
+  const destinationDetails = lexicalToHtml(destination.destinationDetails)
+  const hasDetails = destinationDetails.length > 0
 
   return (
     <>

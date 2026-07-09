@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { getDestinations } from '@/lib/api'
+import { getDestinations } from '@/lib/payload-api'
 import DestinationsGrid from '@/components/destinations/DestinationsGrid'
 
 export const metadata: Metadata = {
@@ -13,13 +13,9 @@ export default async function DestinationsPage() {
   const items = destinations.map((destination) => ({
     id: destination.id,
     slug: destination.slug,
-    title: destination.title.rendered,
-    imageSrc:
-      destination._embedded?.['wp:featuredmedia']?.[0]?.source_url ||
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (destination.images as any)?.hero?.full ||
-      null,
-    place_entries: destination.place_entries,
+    title: destination.title,
+    imageSrc: destination.featuredImage?.url ?? null,
+    region: destination.region,
   }))
 
   return (
