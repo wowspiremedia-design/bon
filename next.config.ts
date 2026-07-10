@@ -20,6 +20,11 @@ const nextConfig: NextConfig = {
         hostname: "bonvoyagers.co",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "payload.bonvoyagers.co",
+        pathname: "/**",
+      },
     ],
   },
 };
