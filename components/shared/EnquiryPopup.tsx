@@ -45,6 +45,7 @@ export default function EnquiryPopup({
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [message, setMessage] = useState('')
+  const [website, setWebsite] = useState('')
 
   const [mounted, setMounted] = useState(false)
   const [showExitConfirm, setShowExitConfirm] = useState(false)
@@ -103,6 +104,7 @@ export default function EnquiryPopup({
           price,
           regularPrice,
           packageId,
+          website,
         }),
       })
       if (!res.ok) throw new Error('Request failed')
@@ -353,6 +355,17 @@ export default function EnquiryPopup({
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <input
+                      type="text"
+                      name="website"
+                      value={website}
+                      onChange={(e) => setWebsite(e.target.value)}
+                      tabIndex={-1}
+                      autoComplete="off"
+                      aria-hidden="true"
+                      style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}
+                    />
+
                     <Field label="Your Full Name *" icon={<User size={14} />}>
                       <input
                         type="text"
