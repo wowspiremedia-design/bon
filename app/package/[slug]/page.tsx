@@ -9,6 +9,7 @@ import FAQAccordion from '@/components/package/FAQAccordion'
 import ShareButton from '@/components/package/ShareButton'
 import SectionScrollSpy, { type ScrollSpySection } from '@/components/shared/SectionScrollSpy'
 import { SECTION_NAV_SCROLL_OFFSET } from '@/components/shared/sectionScrollSpyConfig'
+import EnquiryPopup from '@/components/shared/EnquiryPopup'
 
 // ── Metadata ───────────────────────────────────────────────────────────────────
 
@@ -463,6 +464,11 @@ export default async function PackagePage({
               discountPct={discountPct}
               waLink={waLink}
               fmt={fmt}
+              packageTitle={pkg.title}
+              duration={duration}
+              packageId={pkg.id}
+              heroImage={heroImage}
+              waNumber={WA_NUMBER}
             />
 
             {pkg.brochure && (
@@ -516,23 +522,37 @@ export default async function PackagePage({
           <p style={{ fontSize: '11px', color: '#888888' }}>per person</p>
         </div>
 
-        <Link
-          href={waLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            background: '#25D366',
-            color: '#FFFFFF',
-            fontWeight: 700,
-            fontSize: '14px',
-            padding: '12px 24px',
-            borderRadius: '10px',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-          }}
-        >
-          WhatsApp Us
-        </Link>
+        <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
+          <div style={{ width: '130px' }}>
+            <EnquiryPopup
+              packageTitle={pkg.title}
+              duration={duration}
+              price={price}
+              regularPrice={regularPrice}
+              packageId={pkg.id}
+              imageUrl={heroImage}
+              waNumber={WA_NUMBER}
+            />
+          </div>
+
+          <Link
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              background: '#25D366',
+              color: '#FFFFFF',
+              fontWeight: 700,
+              fontSize: '14px',
+              padding: '12px 24px',
+              borderRadius: '10px',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+            }}
+          >
+            WhatsApp Us
+          </Link>
+        </div>
       </div>
     </>
   )
@@ -570,6 +590,11 @@ function BookingSidebar({
   discountPct,
   waLink,
   fmt,
+  packageTitle,
+  duration,
+  packageId,
+  heroImage,
+  waNumber,
 }: {
   price: number
   regularPrice: number
@@ -577,6 +602,11 @@ function BookingSidebar({
   discountPct: number
   waLink: string
   fmt: (n: number) => string
+  packageTitle: string
+  duration: string
+  packageId: number
+  heroImage: string
+  waNumber: string
 }) {
   const TRUST = [
     { icon: '✓', label: 'Free Cancellation', sub: 'Cancel up to 7 days before' },
@@ -641,23 +671,17 @@ function BookingSidebar({
       </Link>
 
       {/* Enquire Now */}
-      <Link
-        href={waLink}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block text-center transition-colors duration-200 hover:bg-[#F7FAF7]"
-        style={{
-          border: '2px solid #1E6B2E',
-          color: '#1E6B2E',
-          fontWeight: 700,
-          fontSize: '15px',
-          padding: '13px',
-          borderRadius: '10px',
-          marginBottom: '20px',
-        }}
-      >
-        Enquire Now
-      </Link>
+      <div style={{ marginBottom: '20px' }}>
+        <EnquiryPopup
+          packageTitle={packageTitle}
+          duration={duration}
+          price={price}
+          regularPrice={regularPrice}
+          packageId={packageId}
+          imageUrl={heroImage}
+          waNumber={waNumber}
+        />
+      </div>
 
       {/* Trust items */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
