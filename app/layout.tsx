@@ -18,6 +18,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://bonvoyagers.co'),
   title: "Bon Voyagers — Premium Travel Packages & Destinations",
   description:
     "Book curated travel packages, luxury holidays, and trending destinations across India & international locations with Bon Voyagers.",

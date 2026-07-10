@@ -213,6 +213,31 @@ export async function getPackagesByCategoryLite(categoryId: number, limit = 200)
   }))
 }
 
+export interface PayloadPackageSlug {
+  slug: string
+  updatedAt: string
+}
+
+export async function getAllPackageSlugs(): Promise<PayloadPackageSlug[]> {
+  const limit = 200
+  const all: PayloadPackageSlug[] = []
+  let page = 1
+
+  while (true) {
+    const path = `/api/packages?limit=${limit}&page=${page}&depth=0&select[slug]=true&select[updatedAt]=true`
+    const res = await payloadFetch<PayloadListResponse<PayloadPackageSlug>>(path)
+    if (!Array.isArray(res.docs)) {
+      console.warn(`payloadFetch: expected a docs array from ${path}, got a non-array response`, res)
+      break
+    }
+    all.push(...res.docs.map((doc) => ({ slug: doc.slug, updatedAt: doc.updatedAt })))
+    if (res.docs.length < limit) break
+    page++
+  }
+
+  return all
+}
+
 export async function getPackagesByIds(ids: number[]): Promise<PayloadPackage[]> {
   if (ids.length === 0) return []
   const path = `/api/packages?where[id][in]=${ids.join(',')}&limit=${ids.length}`
