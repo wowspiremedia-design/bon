@@ -67,9 +67,10 @@ export default function FAQAccordion({ faqs }: { faqs: FAQItem[] }) {
 
             {isOpen && (
               <div
-                style={{ padding: '0 16px 16px 16px', fontSize: '14px', color: '#4A4A4A', lineHeight: 1.7 }}
-                dangerouslySetInnerHTML={{ __html: faq.answer_label }}
-              />
+                style={{ padding: '0 16px 16px 16px', fontSize: '14px', color: '#4A4A4A', lineHeight: 1.7, whiteSpace: 'pre-line' }}
+              >
+                {faq.answer_label}
+              </div>
             )}
           </div>
         )

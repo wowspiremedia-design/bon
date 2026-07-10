@@ -96,9 +96,10 @@ export default function ItineraryAccordion({ days }: { days: ItineraryDay[] }) {
 
             {isOpen && (
               <div
-                style={{ padding: '0 16px 16px 16px', fontSize: '14px', color: '#4A4A4A', lineHeight: 1.7 }}
-                dangerouslySetInnerHTML={{ __html: day.day_description }}
-              />
+                style={{ padding: '0 16px 16px 16px', fontSize: '14px', color: '#4A4A4A', lineHeight: 1.7, whiteSpace: 'pre-line' }}
+              >
+                {day.day_description}
+              </div>
             )}
           </div>
         )
