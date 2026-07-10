@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import type { Hotel } from '@/lib/hotels-api'
+import type { MappedHotel as Hotel } from '@/lib/payload-hotels-api'
 import { AmenityIcon } from './AmenityIcon'
 import ShareHotelButton from '@/components/hotels/ShareHotelButton'
 

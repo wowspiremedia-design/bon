@@ -5,11 +5,6 @@ const nextConfig: NextConfig = {
     dangerouslyAllowLocalIP: true,
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "cms.bonvoyagers.co",
-        pathname: "/**",
-      },
-      {
         protocol: "http",
         hostname: "localhost",
         port: "3000",

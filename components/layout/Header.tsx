@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
+import { resolveMediaUrl } from '@/lib/payload-api'
 
 type NavLink = { href: string; label: string; isDeals?: boolean }
 
@@ -37,7 +38,7 @@ export default function Header() {
         {/* Logo */}
         <Link href="/" className="flex-shrink-0">
           <Image
-            src="https://cms.bonvoyagers.co/wp-content/uploads/2024/10/bon-logo.png"
+            src={resolveMediaUrl('/api/media/file/bon-logo.png')!}
             alt="Bon Voyagers"
             width={180}
             height={44}

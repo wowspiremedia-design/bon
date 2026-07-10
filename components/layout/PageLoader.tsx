@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
+import { resolveMediaUrl } from '@/lib/payload-api'
 
 export default function PageLoader() {
   const [mounted, setMounted] = useState(false)
@@ -39,7 +40,7 @@ export default function PageLoader() {
     >
       {/* Logo */}
       <Image
-        src="https://cms.bonvoyagers.co/wp-content/uploads/2024/10/bon-logo.png"
+        src={resolveMediaUrl('/api/media/file/bon-logo.png')!}
         alt="Bon Voyagers"
         width={176}
         height={56}

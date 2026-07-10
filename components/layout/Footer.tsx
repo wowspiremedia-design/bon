@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { FaFacebookF, FaInstagram, FaYoutube, FaLinkedinIn } from 'react-icons/fa'
+import { resolveMediaUrl } from '@/lib/payload-api'
 
 const TOUR_PACKAGES = [
   { label: 'Kashmir Packages', slug: 'kashmir-packages' },
@@ -85,7 +86,7 @@ export default function Footer() {
         <div className="flex flex-col gap-4">
           <Link href="/">
             <Image
-              src="https://cms.bonvoyagers.co/wp-content/uploads/2024/10/bon-logo.png"
+              src={resolveMediaUrl('/api/media/file/bon-logo.png')!}
               alt="Bon Voyagers"
               width={160}
               height={44}

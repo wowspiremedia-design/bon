@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import PackageCard, { type PackageCardProps } from '@/components/shared/PackageCard'
-import { type PackageLite } from '@/lib/api'
+import { type PayloadPackageLite as PackageLite } from '@/lib/payload-api'
 
 const ITEMS_PER_PAGE = 15
 const fmt = (n: number) => '₹' + Math.round(n).toLocaleString('en-IN')

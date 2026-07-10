@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { resolveMediaUrl } from '@/lib/payload-api'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -609,7 +610,7 @@ export default function ContactPage() {
                     {/* Gold reflection at top */}
                     <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-[#C8A96A]/10 to-transparent z-10 pointer-events-none rounded-t-[22px]" />
                     <Image
-                      src="https://cms.bonvoyagers.co/wp-content/uploads/2026/06/Bon-team.webp"
+                      src={resolveMediaUrl('/api/media/file/Bon-team.webp')!}
                       alt="Bon Voyagers Travel Expert Team"
                       width={800}
                       height={500}

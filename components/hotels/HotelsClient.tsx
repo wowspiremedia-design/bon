@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import type { Hotel } from '@/lib/hotels-api'
+import type { MappedHotel as Hotel } from '@/lib/payload-hotels-api'
 import HotelCard from './HotelCard'
 
 // ── Config ─────────────────────────────────────────────────────────────────────
