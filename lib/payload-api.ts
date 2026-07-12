@@ -438,6 +438,9 @@ export interface FilteredPayloadPackagesParams {
   minPrice?: number
   maxPrice?: number
   duration?: string[]
+  experienceType?: string[]
+  activities?: string[]
+  bestSeason?: string[]
   sort?: SortValue
   cursor?: number
 }
@@ -454,12 +457,18 @@ async function fetchFilteredPackagesPage(
   categories: number[],
   minPrice: number | undefined,
   maxPrice: number | undefined,
+  experienceType: string[],
+  activities: string[],
+  bestSeason: string[],
   sort: FilteredPayloadPackagesParams['sort'],
 ): Promise<{ packages: PayloadPackage[]; totalPages: number; total: number }> {
   let qs = `page=${page}&limit=${FILTER_PER_PAGE}`
   if (categories.length > 0) qs += `&where[category][in]=${categories.join(',')}`
   if (minPrice !== undefined) qs += `&where[price][greater_than_equal]=${minPrice}`
   if (maxPrice !== undefined && Number.isFinite(maxPrice)) qs += `&where[price][less_than_equal]=${maxPrice}`
+  if (experienceType.length > 0) qs += `&where[experienceType][in]=${experienceType.join(',')}`
+  if (activities.length > 0) qs += `&where[activities][in]=${activities.join(',')}`
+  if (bestSeason.length > 0) qs += `&where[bestSeason][in]=${bestSeason.join(',')}`
   if (sort === 'price_asc') qs += '&sort=price'
   if (sort === 'price_desc') qs += '&sort=-price'
 
@@ -484,6 +493,9 @@ export async function getFilteredPayloadPackages(
     minPrice,
     maxPrice,
     duration = [],
+    experienceType = [],
+    activities = [],
+    bestSeason = [],
     sort = 'popular',
     cursor = 1,
   } = params
@@ -496,7 +508,7 @@ export async function getFilteredPayloadPackages(
 
   while (true) {
     fetches++
-    const { packages: batch, totalPages: tp, total } = await fetchFilteredPackagesPage(page, categories, minPrice, maxPrice, sort)
+    const { packages: batch, totalPages: tp, total } = await fetchFilteredPackagesPage(page, categories, minPrice, maxPrice, experienceType, activities, bestSeason, sort)
     totalPages = tp
     totalCount = total
 

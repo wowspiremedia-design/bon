@@ -27,6 +27,41 @@ const DURATION_RANGES = [
   { key: '10+',  label: '10+ Days',  min: 11, max: Infinity },
 ]
 
+const EXPERIENCE_TYPE_OPTIONS = [
+  { key: 'adventure',      label: 'Adventure' },
+  { key: 'family',         label: 'Family' },
+  { key: 'leisure',        label: 'Leisure' },
+  { key: 'luxury',         label: 'Luxury' },
+  { key: 'offbeat',        label: 'Offbeat' },
+  { key: 'spiritual',      label: 'Spiritual' },
+  { key: 'women_friendly', label: 'Women Friendly' },
+]
+
+const ACTIVITIES_OPTIONS = [
+  { key: 'adventure_rides',   label: 'Adventure Rides' },
+  { key: 'camping',           label: 'Camping' },
+  { key: 'forest_trails',     label: 'Forest Trails' },
+  { key: 'heritage_culture',  label: 'Heritage & Culture' },
+  { key: 'photography',      label: 'Photography' },
+  { key: 'riverside_stay',    label: 'Riverside Stay' },
+  { key: 'snow_experience',   label: 'Snow Experience' },
+  { key: 'tea_garden_stay',   label: 'Tea Garden Stay' },
+  { key: 'trekking',          label: 'Trekking' },
+  { key: 'village_walk',      label: 'Village Walk' },
+  { key: 'water_activities',  label: 'Water Activities' },
+  { key: 'waterfalls',        label: 'Waterfalls' },
+  { key: 'wellness_nature',   label: 'Wellness & Nature' },
+  { key: 'wildlife',          label: 'Wildlife' },
+]
+
+const BEST_SEASON_OPTIONS = [
+  { key: 'autumn',  label: 'Autumn' },
+  { key: 'monsoon', label: 'Monsoon' },
+  { key: 'spring',  label: 'Spring' },
+  { key: 'summer',  label: 'Summer' },
+  { key: 'winter',  label: 'Winter' },
+]
+
 const SORT_OPTIONS = [
   { value: 'popular',    label: 'Popular' },
   { value: 'price_asc',  label: 'Price: Low to High' },
@@ -62,10 +97,13 @@ export default function AllPackagesClient({
   initialHasMore,
   initialTotalCount,
 }: Props) {
-  const [selectedCategories, setSelectedCategories] = useState<number[]>([])
-  const [selectedPrice, setSelectedPrice]           = useState<string | null>(null)
-  const [selectedDurations, setSelectedDurations]   = useState<string[]>([])
-  const [sort, setSort]                             = useState<SortValue>('popular')
+  const [selectedCategories, setSelectedCategories]           = useState<number[]>([])
+  const [selectedExperienceTypes, setSelectedExperienceTypes] = useState<string[]>([])
+  const [selectedActivities, setSelectedActivities]           = useState<string[]>([])
+  const [selectedBestSeasons, setSelectedBestSeasons]         = useState<string[]>([])
+  const [selectedPrice, setSelectedPrice]                     = useState<string | null>(null)
+  const [selectedDurations, setSelectedDurations]             = useState<string[]>([])
+  const [sort, setSort]                                       = useState<SortValue>('popular')
 
   const [packages, setPackages]     = useState<PackageCardProps[]>(initialPackages)
   const [cursor, setCursor]         = useState<number | null>(initialNextCursor)
@@ -79,7 +117,7 @@ export default function AllPackagesClient({
   const isFirstRender = useRef(true)
   const requestIdRef  = useRef(0)
 
-  const sortedCategories = [...categories].sort((a, b) => b.count - a.count)
+  const sortedCategories = [...categories].sort((a, b) => a.name.localeCompare(b.name))
 
   // Measure the mobile drawer's Apply footer so the drawer's filter panel
   // knows how much space to reserve below it when fitting the category list.
@@ -109,6 +147,9 @@ export default function AllPackagesClient({
         if (Number.isFinite(priceRange.max)) qs.set('maxPrice', String(priceRange.max))
       }
       if (selectedDurations.length > 0) qs.set('duration', selectedDurations.join(','))
+      if (selectedExperienceTypes.length > 0) qs.set('experienceType', selectedExperienceTypes.join(','))
+      if (selectedActivities.length > 0) qs.set('activities', selectedActivities.join(','))
+      if (selectedBestSeasons.length > 0) qs.set('bestSeason', selectedBestSeasons.join(','))
       qs.set('sort', sort)
       qs.set('cursor', String(targetCursor))
 
@@ -127,7 +168,7 @@ export default function AllPackagesClient({
     } finally {
       if (requestId === requestIdRef.current) setLoading(false)
     }
-  }, [selectedCategories, selectedPrice, selectedDurations, sort])
+  }, [selectedCategories, selectedPrice, selectedDurations, selectedExperienceTypes, selectedActivities, selectedBestSeasons, sort])
 
   // Infinite scroll: instead of a single sentinel after the last card, a
   // moving trigger point watches whichever loaded card currently sits at
@@ -292,7 +333,7 @@ export default function AllPackagesClient({
 
     setPackages([])
     fetchPackages(1, 'replace')
-  }, [selectedCategories, selectedPrice, selectedDurations, sort, fetchPackages])
+  }, [selectedCategories, selectedPrice, selectedDurations, selectedExperienceTypes, selectedActivities, selectedBestSeasons, sort, fetchPackages])
 
   // Back-to-top visibility
   useEffect(() => {
@@ -309,6 +350,18 @@ export default function AllPackagesClient({
     setSelectedCategories((prev) => (prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]))
   }
 
+  function toggleExperienceType(key: string) {
+    setSelectedExperienceTypes((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]))
+  }
+
+  function toggleActivity(key: string) {
+    setSelectedActivities((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]))
+  }
+
+  function toggleBestSeason(key: string) {
+    setSelectedBestSeasons((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]))
+  }
+
   function togglePrice(label: string) {
     setSelectedPrice((prev) => (prev === label ? null : label))
   }
@@ -319,17 +372,37 @@ export default function AllPackagesClient({
 
   function clearAll() {
     setSelectedCategories([])
+    setSelectedExperienceTypes([])
+    setSelectedActivities([])
+    setSelectedBestSeasons([])
     setSelectedPrice(null)
     setSelectedDurations([])
   }
 
-  const activeFilterCount = selectedCategories.length + (selectedPrice ? 1 : 0) + selectedDurations.length
+  const activeFilterCount = selectedCategories.length
+    + selectedExperienceTypes.length
+    + selectedActivities.length
+    + selectedBestSeasons.length
+    + (selectedPrice ? 1 : 0)
+    + selectedDurations.length
   const filtersActive = activeFilterCount > 0
 
   const pills: { key: string; label: string; onRemove: () => void }[] = [
     ...selectedCategories.map((id) => {
       const cat = categories.find((c) => c.id === id)
       return { key: `cat-${id}`, label: cat?.name ?? String(id), onRemove: () => toggleCategory(id) }
+    }),
+    ...selectedExperienceTypes.map((key) => {
+      const o = EXPERIENCE_TYPE_OPTIONS.find((opt) => opt.key === key)
+      return { key: `exp-${key}`, label: o?.label ?? key, onRemove: () => toggleExperienceType(key) }
+    }),
+    ...selectedActivities.map((key) => {
+      const o = ACTIVITIES_OPTIONS.find((opt) => opt.key === key)
+      return { key: `act-${key}`, label: o?.label ?? key, onRemove: () => toggleActivity(key) }
+    }),
+    ...selectedBestSeasons.map((key) => {
+      const o = BEST_SEASON_OPTIONS.find((opt) => opt.key === key)
+      return { key: `season-${key}`, label: o?.label ?? key, onRemove: () => toggleBestSeason(key) }
     }),
     ...(selectedPrice ? [{ key: 'price', label: selectedPrice, onRemove: () => setSelectedPrice(null) }] : []),
     ...selectedDurations.map((key) => {
@@ -420,12 +493,20 @@ export default function AllPackagesClient({
               border: '1px solid #E0EBE1',
               borderRadius: '12px',
               padding: '20px',
+              maxHeight: `calc(100vh - ${HEADER_HEIGHT + CATEGORY_LIST_BOTTOM_BUFFER}px)`,
+              overflowY: 'auto',
             }}
           >
             <FilterPanel
               categories={sortedCategories}
               selectedCategories={selectedCategories}
               onToggleCategory={toggleCategory}
+              selectedExperienceTypes={selectedExperienceTypes}
+              onToggleExperienceType={toggleExperienceType}
+              selectedActivities={selectedActivities}
+              onToggleActivity={toggleActivity}
+              selectedBestSeasons={selectedBestSeasons}
+              onToggleBestSeason={toggleBestSeason}
               selectedPrice={selectedPrice}
               onTogglePrice={togglePrice}
               selectedDurations={selectedDurations}
@@ -603,6 +684,12 @@ export default function AllPackagesClient({
               categories={sortedCategories}
               selectedCategories={selectedCategories}
               onToggleCategory={toggleCategory}
+              selectedExperienceTypes={selectedExperienceTypes}
+              onToggleExperienceType={toggleExperienceType}
+              selectedActivities={selectedActivities}
+              onToggleActivity={toggleActivity}
+              selectedBestSeasons={selectedBestSeasons}
+              onToggleBestSeason={toggleBestSeason}
               selectedPrice={selectedPrice}
               onTogglePrice={togglePrice}
               selectedDurations={selectedDurations}
@@ -675,6 +762,12 @@ interface FilterPanelProps {
   categories: CategoryOption[]
   selectedCategories: number[]
   onToggleCategory: (id: number) => void
+  selectedExperienceTypes: string[]
+  onToggleExperienceType: (key: string) => void
+  selectedActivities: string[]
+  onToggleActivity: (key: string) => void
+  selectedBestSeasons: string[]
+  onToggleBestSeason: (key: string) => void
   selectedPrice: string | null
   onTogglePrice: (label: string) => void
   selectedDurations: string[]
@@ -685,13 +778,19 @@ interface FilterPanelProps {
   reservedBottomSpace?: number
 }
 
-const CATEGORY_LIST_MIN_HEIGHT = 120
 const CATEGORY_LIST_BOTTOM_BUFFER = 24
+const SHOW_MORE_THRESHOLD = 5
 
 function FilterPanel({
   categories,
   selectedCategories,
   onToggleCategory,
+  selectedExperienceTypes,
+  onToggleExperienceType,
+  selectedActivities,
+  onToggleActivity,
+  selectedBestSeasons,
+  onToggleBestSeason,
   selectedPrice,
   onTogglePrice,
   selectedDurations,
@@ -701,21 +800,13 @@ function FilterPanel({
   hideTitle,
   reservedBottomSpace = 0,
 }: FilterPanelProps) {
-  const categoryListRef = useRef<HTMLDivElement | null>(null)
-  const restRef = useRef<HTMLDivElement | null>(null)
-  const [categoryMaxHeight, setCategoryMaxHeight] = useState(320)
+  const [categoryExpanded, setCategoryExpanded] = useState(false)
+  const [experienceTypeExpanded, setExperienceTypeExpanded] = useState(false)
+  const [activitiesExpanded, setActivitiesExpanded] = useState(false)
 
-  useLayoutEffect(() => {
-    function recalc() {
-      const listTop = categoryListRef.current?.getBoundingClientRect().top ?? 0
-      const restHeight = restRef.current?.getBoundingClientRect().height ?? 0
-      const available = window.innerHeight - listTop - restHeight - reservedBottomSpace - CATEGORY_LIST_BOTTOM_BUFFER
-      setCategoryMaxHeight(Math.max(CATEGORY_LIST_MIN_HEIGHT, Math.round(available)))
-    }
-    recalc()
-    window.addEventListener('resize', recalc)
-    return () => window.removeEventListener('resize', recalc)
-  }, [reservedBottomSpace])
+  const visibleCategories = categoryExpanded ? categories : categories.slice(0, SHOW_MORE_THRESHOLD)
+  const visibleExperienceTypes = experienceTypeExpanded ? EXPERIENCE_TYPE_OPTIONS : EXPERIENCE_TYPE_OPTIONS.slice(0, SHOW_MORE_THRESHOLD)
+  const visibleActivities = activitiesExpanded ? ACTIVITIES_OPTIONS : ACTIVITIES_OPTIONS.slice(0, SHOW_MORE_THRESHOLD)
 
   return (
     <div>
@@ -725,21 +816,11 @@ function FilterPanel({
         </h3>
       )}
 
-      {/* Category: only this list scrolls internally, height measured to fit above Price Range and Duration */}
+      {/* Category */}
       <div style={{ marginBottom: '20px' }}>
         <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '10px' }}>Category</p>
-        <div
-          ref={categoryListRef}
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            maxHeight: `${categoryMaxHeight}px`,
-            overflowY: 'auto',
-            paddingRight: '4px',
-          }}
-        >
-          {categories.map((c) => (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {visibleCategories.map((c) => (
             <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <input
                 type="checkbox"
@@ -751,47 +832,129 @@ function FilterPanel({
             </label>
           ))}
         </div>
+        {categories.length > SHOW_MORE_THRESHOLD && (
+          <p
+            onClick={() => setCategoryExpanded((prev) => !prev)}
+            style={{ fontSize: '13px', color: '#1E6B2E', cursor: 'pointer', textDecoration: 'none', marginTop: '8px' }}
+          >
+            {categoryExpanded ? 'Show less' : 'Show more'}
+          </p>
+        )}
       </div>
 
-      <div ref={restRef}>
-        <div style={{ borderTop: '1px solid #E0EBE1', marginBottom: '20px' }} />
+      <div style={{ borderTop: '1px solid #E0EBE1', marginBottom: '20px' }} />
 
-        {/* Price range */}
-        <div style={{ marginBottom: '20px' }}>
-          <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '10px' }}>Price Range</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {PRICE_RANGES.map((r) => (
-              <label key={r.label} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={selectedPrice === r.label}
-                  onChange={() => onTogglePrice(r.label)}
-                  style={{ accentColor: '#1E6B2E', width: '15px', height: '15px', cursor: 'pointer' }}
-                />
-                <span style={{ fontSize: '13px', color: '#4A4A4A' }}>{r.label}</span>
-              </label>
-            ))}
-          </div>
+      {/* Experience Type */}
+      <div style={{ marginBottom: '20px' }}>
+        <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '10px' }}>Experience Type</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {visibleExperienceTypes.map((o) => (
+            <label key={o.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={selectedExperienceTypes.includes(o.key)}
+                onChange={() => onToggleExperienceType(o.key)}
+                style={{ accentColor: '#1E6B2E', width: '15px', height: '15px', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '13px', color: '#4A4A4A' }}>{o.label}</span>
+            </label>
+          ))}
         </div>
+        {EXPERIENCE_TYPE_OPTIONS.length > SHOW_MORE_THRESHOLD && (
+          <p
+            onClick={() => setExperienceTypeExpanded((prev) => !prev)}
+            style={{ fontSize: '13px', color: '#1E6B2E', cursor: 'pointer', textDecoration: 'none', marginTop: '8px' }}
+          >
+            {experienceTypeExpanded ? 'Show less' : 'Show more'}
+          </p>
+        )}
+      </div>
 
-        <div style={{ borderTop: '1px solid #E0EBE1', marginBottom: '20px' }} />
+      <div style={{ borderTop: '1px solid #E0EBE1', marginBottom: '20px' }} />
 
-        {/* Duration */}
-        <div>
-          <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '10px' }}>Duration</p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {DURATION_RANGES.map((r) => (
-              <label key={r.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                <input
-                  type="checkbox"
-                  checked={selectedDurations.includes(r.key)}
-                  onChange={() => onToggleDuration(r.key)}
-                  style={{ accentColor: '#1E6B2E', width: '15px', height: '15px', cursor: 'pointer' }}
-                />
-                <span style={{ fontSize: '13px', color: '#4A4A4A' }}>{r.label}</span>
-              </label>
-            ))}
-          </div>
+      {/* Activities */}
+      <div style={{ marginBottom: '20px' }}>
+        <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '10px' }}>Activities</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {visibleActivities.map((o) => (
+            <label key={o.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={selectedActivities.includes(o.key)}
+                onChange={() => onToggleActivity(o.key)}
+                style={{ accentColor: '#1E6B2E', width: '15px', height: '15px', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '13px', color: '#4A4A4A' }}>{o.label}</span>
+            </label>
+          ))}
+        </div>
+        {ACTIVITIES_OPTIONS.length > SHOW_MORE_THRESHOLD && (
+          <p
+            onClick={() => setActivitiesExpanded((prev) => !prev)}
+            style={{ fontSize: '13px', color: '#1E6B2E', cursor: 'pointer', textDecoration: 'none', marginTop: '8px' }}
+          >
+            {activitiesExpanded ? 'Show less' : 'Show more'}
+          </p>
+        )}
+      </div>
+
+      <div style={{ borderTop: '1px solid #E0EBE1', marginBottom: '20px' }} />
+
+      {/* Best Season */}
+      <div style={{ marginBottom: '20px' }}>
+        <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '10px' }}>Best Season</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {BEST_SEASON_OPTIONS.map((o) => (
+            <label key={o.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={selectedBestSeasons.includes(o.key)}
+                onChange={() => onToggleBestSeason(o.key)}
+                style={{ accentColor: '#1E6B2E', width: '15px', height: '15px', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '13px', color: '#4A4A4A' }}>{o.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ borderTop: '1px solid #E0EBE1', marginBottom: '20px' }} />
+
+      {/* Price range */}
+      <div style={{ marginBottom: '20px' }}>
+        <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '10px' }}>Price Range</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {PRICE_RANGES.map((r) => (
+            <label key={r.label} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={selectedPrice === r.label}
+                onChange={() => onTogglePrice(r.label)}
+                style={{ accentColor: '#1E6B2E', width: '15px', height: '15px', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '13px', color: '#4A4A4A' }}>{r.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ borderTop: '1px solid #E0EBE1', marginBottom: '20px' }} />
+
+      {/* Duration */}
+      <div>
+        <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '10px' }}>Duration</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {DURATION_RANGES.map((r) => (
+            <label key={r.key} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={selectedDurations.includes(r.key)}
+                onChange={() => onToggleDuration(r.key)}
+                style={{ accentColor: '#1E6B2E', width: '15px', height: '15px', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: '13px', color: '#4A4A4A' }}>{r.label}</span>
+            </label>
+          ))}
         </div>
       </div>
 

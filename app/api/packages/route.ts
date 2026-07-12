@@ -3,6 +3,13 @@ import { getFilteredPayloadPackages, DURATION_BAND_KEYS, type SortValue } from '
 
 const VALID_SORTS: SortValue[] = ['popular', 'price_asc', 'price_desc', 'duration']
 
+function parseList(value: string | null): string[] {
+  return (value ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean)
+}
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
 
@@ -25,6 +32,10 @@ export async function GET(request: NextRequest) {
       (DURATION_BAND_KEYS as readonly string[]).includes(s),
     )
 
+  const experienceType = parseList(searchParams.get('experienceType'))
+  const activities = parseList(searchParams.get('activities'))
+  const bestSeason = parseList(searchParams.get('bestSeason'))
+
   const sortRaw = searchParams.get('sort') ?? 'popular'
   const sort: SortValue = (VALID_SORTS as string[]).includes(sortRaw) ? (sortRaw as SortValue) : 'popular'
 
@@ -37,6 +48,9 @@ export async function GET(request: NextRequest) {
       minPrice,
       maxPrice,
       duration,
+      experienceType,
+      activities,
+      bestSeason,
       sort,
       cursor,
     })
