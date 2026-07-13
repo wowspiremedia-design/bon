@@ -7,6 +7,7 @@ export const metadata: Metadata = {
   title: 'Curated Travel Collections | Bon Voyagers',
   description:
     'Explore curated travel collections by Bon Voyagers - spiritual journeys, luxury escapes, weekend getaways, and once-in-a-lifetime experiences.',
+  alternates: { canonical: '/collections' },
 }
 
 export default async function CollectionsPage() {

@@ -9,6 +9,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Hot Travel Deals & Offers | Bon Voyagers',
     description: 'Limited-time travel deals curated by Bon Voyagers. Transparent pricing, verified packages, zero hidden costs.',
+    alternates: {
+      canonical: '/deals',
+    },
   }
 }
 

@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   title: "Bon Voyagers — Premium Travel Packages & Destinations",
   description:
     "Book curated travel packages, luxury holidays, and trending destinations across India & international locations with Bon Voyagers.",
+  alternates: {
+    canonical: '/',
+  },
 };
 
 export default function RootLayout({

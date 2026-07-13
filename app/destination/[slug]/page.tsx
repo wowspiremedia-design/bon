@@ -30,6 +30,9 @@ export async function generateMetadata({
   return {
     title: `${title} Tour Packages & Travel Deals | Bon Voyagers`,
     description,
+    alternates: {
+      canonical: `/destination/${slug}`,
+    },
   }
 }
 

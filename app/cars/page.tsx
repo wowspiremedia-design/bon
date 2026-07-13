@@ -3,8 +3,9 @@ import CarComingSoonIllustration from '@/components/cars/CarComingSoonIllustrati
 import EnquireNowButton from '@/components/cars/EnquireNowButton'
 
 export const metadata: Metadata = {
-  title: 'Car Rentals | Coming Soon | Bon Voyagers',
-  description: 'Car rentals are coming soon to Bon Voyagers. Enquire now and we will help you book the right ride for your trip.',
+  title: 'Car Booking India | Bon Voyagers Travel',
+  description: 'Car booking India made easy. Our own fleet, trusted drivers, top destinations, best rates direct.',
+  alternates: { canonical: '/cars' },
 }
 
 export default async function CarsPage() {

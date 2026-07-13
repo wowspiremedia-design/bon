@@ -6,8 +6,9 @@ import AllPackagesClient from '@/components/packages/AllPackagesClient'
 const SITE_URL = 'https://bonvoyagers.co'
 
 export const metadata: Metadata = {
-  title: 'All Travel Packages | Bon Voyagers',
-  description: 'Browse every curated travel package from Bon Voyagers. Filter by destination, price and duration to find your next trip.',
+  title: 'India Tour Packages 2026 | Bon Voyagers',
+  description: 'Explore handpicked India tour packages 2026. Domestic, international, best prices, direct booking.',
+  alternates: { canonical: '/packages' },
 }
 
 export default async function AllPackagesPage() {

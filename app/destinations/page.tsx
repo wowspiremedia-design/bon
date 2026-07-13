@@ -3,8 +3,9 @@ import { getDestinations } from '@/lib/payload-api'
 import DestinationsGrid from '@/components/destinations/DestinationsGrid'
 
 export const metadata: Metadata = {
-  title: 'All Destinations | Bon Voyagers',
-  description: 'Explore all travel destinations across India with Bon Voyagers.',
+  title: 'Travel Destinations India | Bon Voyagers',
+  description: "Kashmir to Andaman, Ladakh to Bhutan. Discover India's best travel destinations with Bon Voyagers.",
+  alternates: { canonical: '/destinations' },
 }
 
 export default async function DestinationsPage() {

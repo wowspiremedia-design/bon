@@ -47,6 +47,9 @@ export async function generateMetadata({
   return {
     title: metaTitle,
     ...(metaDescription ? { description: metaDescription } : {}),
+    alternates: {
+      canonical: `/hotel/${slug}`,
+    },
     openGraph: {
       title: metaTitle,
       ...(metaDescription ? { description: metaDescription } : {}),

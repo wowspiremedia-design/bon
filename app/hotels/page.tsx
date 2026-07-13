@@ -6,8 +6,9 @@ import HotelsClient, { type TaxonomyOptions } from '@/components/hotels/HotelsCl
 const SITE_URL = 'https://bonvoyagers.co'
 
 export const metadata: Metadata = {
-  title: 'All Hotels & Stays | Bon Voyagers',
-  description: 'Browse every hotel and stay from Bon Voyagers. Filter by location, property type, amenities and price to find your perfect stay.',
+  title: 'Boutique Hotels India | Bon Voyagers',
+  description: 'Our own boutique hotels India. Top destinations, handpicked stays, real comfort, zero middlemen.',
+  alternates: { canonical: '/hotels' },
 }
 
 // Real known enum values from the Hotels collection schema (Payload has no

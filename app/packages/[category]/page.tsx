@@ -52,6 +52,9 @@ export async function generateMetadata({
   return {
     title: `${cat.name} | Bon Voyagers`,
     description: `Explore our curated ${cat.name} travel packages. Book online or chat with our experts for the best deals.`,
+    alternates: {
+      canonical: `/packages/${slug}`,
+    },
   }
 }
 

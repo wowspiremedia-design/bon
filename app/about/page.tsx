@@ -8,6 +8,9 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'About Bon Voyagers | Premium Travel Company India | Bon Voyagers',
     description: 'Bon Voyagers is a leading destination management company offering curated travel experiences across India and worldwide.',
+    alternates: {
+      canonical: '/about',
+    },
   }
 }
 

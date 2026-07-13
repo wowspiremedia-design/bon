@@ -87,6 +87,9 @@ export async function generateMetadata({
   return {
     title: `${title} | Bon Voyagers`,
     description,
+    alternates: {
+      canonical: `/collection/${slug}`,
+    },
   }
 }
 
