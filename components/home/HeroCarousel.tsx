@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRef } from 'react'
 
 export interface HeroSlide {
@@ -70,10 +71,12 @@ export default function HeroCarousel({ slides }: Props) {
               className="flex-shrink-0 w-[340px] md:w-[440px] h-[440px] md:h-[500px] rounded-3xl overflow-hidden relative snap-start cursor-pointer group"
             >
               {/* Image */}
-              <img
+              <Image
                 src={slide.image}
                 alt={slide.title}
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                fill
+                sizes="(max-width: 768px) 340px, 440px"
+                className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               />
 
               {/* Gold accent top line */}

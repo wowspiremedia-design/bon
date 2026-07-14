@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Image from 'next/image'
 
 interface Props {
   images: string[]
@@ -35,11 +36,14 @@ export default function DestinationHeroCarousel({ images, title, excerpt }: Prop
       {/* Background images */}
       {hasImages ? (
         images.map((src, i) => (
-          <img
+          <Image
             key={src}
             src={src}
             alt={i === 0 ? title : ''}
-            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+            fill
+            sizes="100vw"
+            priority={i === 0}
+            className={`object-cover transition-opacity duration-700 ${
               i === current ? 'opacity-100' : 'opacity-0'
             }`}
           />

@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import Image from 'next/image'
 
 interface Props {
   images: string[]
@@ -41,11 +42,14 @@ export default function HeroSection({ images, label, headline, subtitle }: Props
         <div className="absolute inset-0 bg-[#1E6B2E]" />
       ) : (
         images.map((src, i) => (
-          <img
+          <Image
             key={src}
             src={src}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover"
+            fill
+            sizes="100vw"
+            priority={i === 0}
+            className="object-cover"
             style={{
               opacity: i === current ? 1 : 0,
               transform: i === current ? 'scale(1.08)' : 'scale(1)',

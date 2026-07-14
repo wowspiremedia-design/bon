@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useEffect } from 'react'
+import Image from 'next/image'
 
 interface Props {
   images: string[]
@@ -83,11 +84,12 @@ export default function DestinationPhotoGallery({ images, destination }: Props) 
             key={`${src}-${i}`}
             className="flex-shrink-0 w-72 md:w-80 h-[280px] md:h-[320px] rounded-2xl overflow-hidden snap-start relative group"
           >
-            <img
+            <Image
               src={src}
               alt={`${destination} - photo ${i + 1}`}
-              loading="lazy"
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              fill
+              sizes="(max-width: 768px) 288px, 320px"
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </div>
