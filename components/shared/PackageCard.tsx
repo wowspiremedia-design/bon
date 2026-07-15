@@ -67,12 +67,12 @@ export default function PackageCard({
         .group:focus-within .route-marquee { display: block; }
 
         @keyframes breathe-green {
-          0%, 100% { background-color: #1E6B2E; }
-          50%       { background-color: #2E8B47; }
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.85; }
         }
         @keyframes breathe-amber {
-          0%, 100% { background-color: #F5A623; }
-          50%       { background-color: #F8BE5C; }
+          0%, 100% { opacity: 1; }
+          50%       { opacity: 0.85; }
         }
         .badge-breathe-green {
           background-color: #1E6B2E;
@@ -107,7 +107,8 @@ export default function PackageCard({
             src={image}
             alt={title}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+            sizes="(max-width: 768px) 90vw, (max-width: 1280px) 50vw, 33vw"
+            quality={68}
             style={{ objectFit: 'cover', objectPosition: 'center' }}
             className="transition-transform duration-[400ms] ease-out group-hover:scale-[1.04]"
           />
@@ -228,7 +229,7 @@ export default function PackageCard({
               {onSale && (
                 <p
                   className="line-through leading-none mb-[3px]"
-                  style={{ fontSize: '13px', color: '#AAAAAA' }}
+                  style={{ fontSize: '13px', color: '#6B6B6B' }}
                 >
                   {fmt(regularPrice)}
                 </p>
@@ -239,7 +240,7 @@ export default function PackageCard({
               >
                 {fmt(price)}
               </p>
-              <p style={{ fontSize: '12px', color: '#888888' }}>per person</p>
+              <p style={{ fontSize: '12px', color: '#6B6B6B' }}>per person</p>
             </div>
             <SharePackageButton title={title} slug={slug} />
           </div>

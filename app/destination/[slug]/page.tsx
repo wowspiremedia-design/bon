@@ -36,6 +36,10 @@ export async function generateMetadata({
   }
 }
 
+// ── Constants ──────────────────────────────────────────────────────────────────
+
+const SITE_URL = 'https://bonvoyagers.co'
+
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default async function DestinationPage({
@@ -58,8 +62,35 @@ export default async function DestinationPage({
   const destinationDetails = lexicalToHtml(destination.destinationDetails)
   const hasDetails = destinationDetails.length > 0
 
+  // ── Structured data ──
+  const destinationUrl = `${SITE_URL}/destination/${slug}`
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: title, item: destinationUrl },
+        ],
+      },
+      {
+        '@type': 'TouristDestination',
+        name: title,
+        description: excerpt || undefined,
+        image: galleryImages.length > 0 ? galleryImages : undefined,
+        url: destinationUrl,
+      },
+    ],
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* 1. Hero Carousel */}
       <DestinationHeroCarousel images={galleryImages} title={title} excerpt={excerpt} />
 

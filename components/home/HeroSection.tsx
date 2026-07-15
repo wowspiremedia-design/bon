@@ -49,6 +49,7 @@ export default function HeroSection({ images, label, headline, subtitle }: Props
             fill
             sizes="100vw"
             priority={i === 0}
+            quality={68}
             className="object-cover"
             style={{
               opacity: i === current ? 1 : 0,
@@ -112,12 +113,16 @@ export default function HeroSection({ images, label, headline, subtitle }: Props
               key={i}
               onClick={() => goTo(i)}
               aria-label={`Go to slide ${i + 1}`}
-              className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                i === current
-                  ? 'bg-[#C8A96A] w-6'
-                  : 'bg-white/40 hover:bg-white/70 w-1.5'
-              }`}
-            />
+              className="group p-2 flex items-center justify-center cursor-pointer"
+            >
+              <span
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  i === current
+                    ? 'bg-[#C8A96A] w-6'
+                    : 'bg-white/40 group-hover:bg-white/70 w-1.5'
+                }`}
+              />
+            </button>
           ))}
         </div>
       )}

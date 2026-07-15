@@ -101,10 +101,14 @@ export default function DestinationHeroCarousel({ images, title, excerpt }: Prop
               key={i}
               onClick={() => goTo(i)}
               aria-label={`Go to image ${i + 1}`}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i === current ? 'bg-[#C8A96A] w-4' : 'bg-white/50 w-2'
-              }`}
-            />
+              className="p-2 flex items-center justify-center"
+            >
+              <span
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === current ? 'bg-[#C8A96A] w-4' : 'bg-white/50 w-2'
+                }`}
+              />
+            </button>
           ))}
         </div>
       )}

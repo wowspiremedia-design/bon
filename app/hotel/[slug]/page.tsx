@@ -10,6 +10,7 @@ import { SECTION_NAV_SCROLL_OFFSET } from '@/components/shared/sectionScrollSpyC
 import { AmenityIcon } from '@/components/hotels/AmenityIcon'
 
 const fmt = (n: number) => '₹' + n.toLocaleString('en-IN')
+const SITE_URL = 'https://bonvoyagers.co'
 
 // Rank Math does not expose rank_math_title, rank_math_description or
 // rank_math_focus_keyword through the WordPress REST API for this site
@@ -89,8 +90,38 @@ export default async function HotelPage({
     ...(hasLocationSection ? [{ id: 'section-location', label: 'Location' }] : []),
   ]
 
+  // ── Structured data ──
+  const hotelUrl = `${SITE_URL}/hotel/${slug}`
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'Hotels', item: `${SITE_URL}/hotels` },
+          { '@type': 'ListItem', position: 3, name: title, item: hotelUrl },
+        ],
+      },
+      {
+        '@type': 'Hotel',
+        name: title,
+        description: hotel.overview || undefined,
+        image: hotel.image ? [hotel.image] : undefined,
+        url: hotelUrl,
+        address: hotel.address || hotel.location || undefined,
+        ...(hotel.startingPrice !== null ? { priceRange: `₹${hotel.startingPrice}+` } : {}),
+      },
+    ],
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* ── Breadcrumb ── */}
       <div style={{ background: '#FFFFFF', borderBottom: '1px solid #E0EBE1' }}>
         <div className="mx-auto" style={{ maxWidth: '1280px', padding: '10px clamp(16px, 4vw, 40px)' }}>

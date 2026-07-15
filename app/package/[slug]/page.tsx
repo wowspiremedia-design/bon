@@ -47,6 +47,7 @@ export async function generateMetadata({
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const WA_NUMBER = process.env.NEXT_PUBLIC_WA_NUMBER ?? '919836755550'
+const SITE_URL = 'https://bonvoyagers.co'
 
 // Fixed content, identical on every package page, not sourced from WordPress.
 const PRICE_CONDITIONS = [
@@ -128,8 +129,50 @@ export default async function PackagePage({
     { id: 'section-price-conditions', label: 'Important Price & Package Conditions' },
   ]
 
+  // ── Structured data ──
+  const packageUrl = `${SITE_URL}/package/${slug}`
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          ...(categoryName
+            ? [{
+                '@type': 'ListItem',
+                position: 2,
+                name: categoryName,
+                item: `${SITE_URL}/packages?category=${pkg.category[0]?.slug ?? ''}`,
+              }]
+            : []),
+          { '@type': 'ListItem', position: categoryName ? 3 : 2, name: pkg.title, item: packageUrl },
+        ],
+      },
+      {
+        '@type': 'Product',
+        name: pkg.title,
+        description: pkg.seoDescription || undefined,
+        image: heroImage ? [heroImage] : undefined,
+        url: packageUrl,
+        offers: {
+          '@type': 'Offer',
+          price,
+          priceCurrency: 'INR',
+          availability: 'https://schema.org/InStock',
+          url: packageUrl,
+        },
+      },
+    ],
+  }
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
       {/* ── Hero ── */}
       <section className="relative w-full overflow-hidden h-[480px] lg:h-[560px]" style={{ position: 'relative' }}>
         {heroImage && (
@@ -515,14 +558,14 @@ export default async function PackagePage({
       >
         <div>
           {onSale && (
-            <p className="line-through leading-none" style={{ fontSize: '12px', color: '#AAAAAA', marginBottom: '2px' }}>
+            <p className="line-through leading-none" style={{ fontSize: '12px', color: '#6B6B6B', marginBottom: '2px' }}>
               {fmt(regularPrice)}
             </p>
           )}
           <p style={{ fontSize: '20px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1 }}>
             {fmt(price)}
           </p>
-          <p style={{ fontSize: '11px', color: '#888888' }}>per person</p>
+          <p style={{ fontSize: '11px', color: '#6B6B6B' }}>per person</p>
         </div>
 
         <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
@@ -631,7 +674,7 @@ function BookingSidebar({
       <div style={{ marginBottom: '20px' }}>
         {onSale && (
           <div className="flex items-center gap-2" style={{ marginBottom: '4px' }}>
-            <p className="line-through" style={{ fontSize: '14px', color: '#AAAAAA' }}>
+            <p className="line-through" style={{ fontSize: '14px', color: '#6B6B6B' }}>
               {fmt(regularPrice)}
             </p>
             <span
@@ -651,7 +694,7 @@ function BookingSidebar({
         <p style={{ fontSize: '32px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1 }}>
           {fmt(price)}
         </p>
-        <p style={{ fontSize: '12px', color: '#888888', marginTop: '4px' }}>per person</p>
+        <p style={{ fontSize: '12px', color: '#6B6B6B', marginTop: '4px' }}>per person</p>
       </div>
 
       {/* WhatsApp CTA */}

@@ -5,7 +5,6 @@ import FeaturedPackagesClient from '@/components/home/FeaturedPackagesClient'
 import PopularDestinations from '@/components/home/PopularDestinations'
 import CollectionsSection from '@/components/home/CollectionsSection'
 import CTASection from '@/components/home/CTASection'
-import PageLoader from '@/components/layout/PageLoader'
 import { getDestinationHeroSlides, getCategories, getPackagesByCategory, mapPayloadPackageToCard } from '@/lib/payload-api'
 import type { PackageCardProps } from '@/components/shared/PackageCard'
 
@@ -59,8 +58,6 @@ export default async function Home() {
 
   return (
     <>
-      <PageLoader />
-
       {/* 1. Cinematic hero with ACF slider images */}
       <HeroSection images={heroImages} />
 

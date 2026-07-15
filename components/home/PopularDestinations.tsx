@@ -47,7 +47,7 @@ export default async function PopularDestinations() {
               >
                 Popular Destinations
               </h2>
-              <p style={{ fontSize: '14px', color: '#888888' }}>
+              <p style={{ fontSize: '14px', color: '#6B6B6B' }}>
                 Choose your next adventure
               </p>
             </div>
@@ -79,7 +79,7 @@ export default async function PopularDestinations() {
                 >
                   <Image
                     src={featuredImage?.url ?? ''}
-                    alt={title}
+                    alt=""
                     fill
                     sizes="90px"
                     style={{ objectFit: 'cover' }}

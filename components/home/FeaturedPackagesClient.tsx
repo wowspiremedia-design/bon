@@ -47,7 +47,7 @@ export default function FeaturedPackagesClient({ packages, tabs }: Props) {
             >
               Top Packages From Kolkata
             </h2>
-            <p style={{ fontSize: '14px', color: '#888888' }}>
+            <p style={{ fontSize: '14px', color: '#6B6B6B' }}>
               Handpicked journeys curated by our travel experts
             </p>
           </div>
@@ -77,7 +77,7 @@ export default function FeaturedPackagesClient({ packages, tabs }: Props) {
                   fontWeight: 600,
                   cursor: 'pointer',
                   background: isActive ? '#1E6B2E' : '#FFFFFF',
-                  color: isActive ? '#FFFFFF' : '#888888',
+                  color: isActive ? '#FFFFFF' : '#6B6B6B',
                   border: isActive ? '1px solid #1E6B2E' : '1px solid #E0EBE1',
                 }}
               >

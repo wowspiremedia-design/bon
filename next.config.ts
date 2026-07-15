@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     dangerouslyAllowLocalIP: true,
+    qualities: [68, 75],
     remotePatterns: [
       {
         protocol: "http",

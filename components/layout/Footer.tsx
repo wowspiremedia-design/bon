@@ -240,10 +240,10 @@ export default function Footer() {
             padding: '20px clamp(16px, 4vw, 40px)',
           }}
         >
-          <p className="text-xs" style={{ color: '#666666' }}>
+          <p className="text-xs" style={{ color: '#999999' }}>
             © 2026 Bon Voyagers — All rights reserved.
           </p>
-          <p className="text-xs" style={{ color: '#666666' }}>
+          <p className="text-xs" style={{ color: '#999999' }}>
             SSL Secure · Verified Travel Partners · 24×7 Support
           </p>
         </div>

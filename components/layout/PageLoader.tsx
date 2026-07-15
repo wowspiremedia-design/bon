@@ -1,15 +1,21 @@
 'use client'
 
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { resolveMediaUrl } from '@/lib/payload-api'
 
 export default function PageLoader() {
+  const pathname = usePathname()
+  const isHomepage = pathname === '/'
+
   const [mounted, setMounted] = useState(false)
   const [show, setShow] = useState(true)
   const [fading, setFading] = useState(false)
 
   useEffect(() => {
+    if (isHomepage) return
+
     setMounted(true)
 
     const alreadyLoaded = sessionStorage.getItem('bv_loaded')
@@ -23,8 +29,9 @@ export default function PageLoader() {
     } else {
       setShow(false)
     }
-  }, [])
+  }, [isHomepage])
 
+  if (isHomepage) return null
   if (!mounted || !show) return null
 
   return (

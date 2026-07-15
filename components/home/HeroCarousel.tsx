@@ -76,6 +76,7 @@ export default function HeroCarousel({ slides }: Props) {
                 alt={slide.title}
                 fill
                 sizes="(max-width: 768px) 340px, 440px"
+                quality={68}
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               />
 
