@@ -29,7 +29,7 @@ export interface PayloadDestination {
   destinationDetails: unknown
   gallery: PayloadMedia[]
   region: 'domestic' | 'international' | undefined
-  packageCategory: PayloadCategory | null
+  packageCategory: PayloadCategory[]
 }
 
 export interface PayloadItineraryDay {
@@ -198,8 +198,8 @@ export async function getOnSalePackages(limit = 30): Promise<PayloadPackage[]> {
   return res.docs.map(resolvePackageMedia)
 }
 
-export async function getPackagesByCategoryLite(categoryId: number, limit = 200): Promise<PayloadPackageLite[]> {
-  const path = `/api/packages?where[category][in]=${categoryId}&limit=${limit}&depth=0`
+export async function getPackagesByCategoryLite(categoryIds: number[], limit = 200): Promise<PayloadPackageLite[]> {
+  const path = `/api/packages?where[category][in]=${categoryIds.join(',')}&limit=${limit}&depth=0`
   const res = await payloadFetch<PayloadListResponse<PayloadPackageLite>>(path)
   if (!Array.isArray(res.docs)) {
     console.warn(`payloadFetch: expected a docs array from ${path}, got a non-array response`, res)

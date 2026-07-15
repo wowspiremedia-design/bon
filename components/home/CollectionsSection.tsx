@@ -75,8 +75,8 @@ async function fetchPackagesForCollection(col: PayloadCollection): Promise<Packa
 async function fetchDestinationCardsForCollection(col: PayloadCollection): Promise<DestinationCardProps[]> {
   const results = await Promise.all(
     col.destinations.map(async (dest) => {
-      if (!dest.packageCategory) return null
-      const lite = await getPackagesByCategoryLite(dest.packageCategory.id)
+      if (dest.packageCategory.length === 0) return null
+      const lite = await getPackagesByCategoryLite(dest.packageCategory.map((c) => c.id))
       const count = lite.length
       if (count === 0) return null
 

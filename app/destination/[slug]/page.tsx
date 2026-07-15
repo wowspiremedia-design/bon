@@ -55,8 +55,8 @@ export default async function DestinationPage({
   const excerpt = (destination.excerpt || '').replace(/<[^>]*>/g, '').trim()
 
   const galleryImages = (destination.gallery ?? []).map((g) => g.url).filter((u): u is string => Boolean(u))
-  const categoryId = destination.packageCategory?.id ?? null
-  const packagesLite = categoryId ? await getPackagesByCategoryLite(categoryId) : []
+  const categoryIds = destination.packageCategory.map((c) => c.id)
+  const packagesLite = categoryIds.length > 0 ? await getPackagesByCategoryLite(categoryIds) : []
 
   const waLink = `https://wa.me/919836755550?text=Hi%20Bon%20Voyagers%20%F0%9F%91%8B%0A%0AI'm%20interested%20in%20planning%20a%20trip%20to%20*${encodeURIComponent(title)}*`
   const destinationDetails = lexicalToHtml(destination.destinationDetails)
