@@ -10,6 +10,7 @@ import ShareButton from '@/components/package/ShareButton'
 import SectionScrollSpy, { type ScrollSpySection } from '@/components/shared/SectionScrollSpy'
 import { SECTION_NAV_SCROLL_OFFSET } from '@/components/shared/sectionScrollSpyConfig'
 import EnquiryPopup from '@/components/shared/EnquiryPopup'
+import { KAILASH_BROCHURE_SLUGS } from '@/lib/kailashBrochureSlugs'
 
 // ── Metadata ───────────────────────────────────────────────────────────────────
 
@@ -110,6 +111,7 @@ export default async function PackagePage({
   // ── Hero image ──
   const heroImage = pkg.images[0]?.url ?? ''
   const categoryName = pkg.category[0]?.name ?? ''
+  const isKailashDownloadPackage = KAILASH_BROCHURE_SLUGS.includes(pkg.slug)
 
   // ── WhatsApp link ──
   const waMsg = encodeURIComponent(`Hi, I'm interested in the package: ${pkg.title}`)
@@ -320,6 +322,31 @@ export default async function PackagePage({
             {/* Sticky scroll-spy section nav, becomes sticky below the header once scrolled past the hero */}
             <SectionScrollSpy sections={sections} />
 
+            {/* Mobile-only brochure download, desktop version lives in the sidebar */}
+            {isKailashDownloadPackage && pkg.brochure && (
+              <Link
+                href={`/api/download-brochure/${pkg.slug}`}
+                className="lg:hidden flex items-center justify-center gap-2 transition-colors duration-200 hover:bg-[#F7FAF7]"
+                style={{
+                  marginBottom: '24px',
+                  border: '1px solid #E0EBE1',
+                  borderRadius: '12px',
+                  padding: '14px',
+                  color: '#1E6B2E',
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  background: '#FFFFFF',
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1E6B2E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ flexShrink: 0 }}>
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Download Brochure
+              </Link>
+            )}
+
             {/* 1. Overview */}
             {shortDescriptionHtml && (
               <Section id="section-overview" title="Overview">
@@ -519,8 +546,8 @@ export default async function PackagePage({
 
             {pkg.brochure && (
               <Link
-                href={pkg.brochure.url}
-                target="_blank"
+                href={isKailashDownloadPackage ? `/api/download-brochure/${pkg.slug}` : pkg.brochure.url}
+                target={isKailashDownloadPackage ? undefined : '_blank'}
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 transition-colors duration-200 hover:bg-[#F7FAF7]"
                 style={{
