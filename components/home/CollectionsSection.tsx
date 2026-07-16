@@ -25,20 +25,20 @@ function darkenHex(hex: string, amount = 0.15): string {
 }
 
 const COLLECTION_COLORS: { match: string; color: string }[] = [
-  { match: 'suhani safar', color: '#FDCEDF' },
-  { match: 'sanatan path', color: '#FFAA00' },
-  { match: 'char dham path', color: '#ff9933' },
-  { match: 'honeymoon diaries', color: '#FD7979' },
-  { match: 'hidden hamlets', color: '#9AD872' },
-  { match: 'kailash kora', color: '#A1E3F9' },
-  { match: 'host of himalayas', color: '#B4E380' },
+  { match: 'suhani safar', color: '#FFF8FA' },
+  { match: 'sanatan path', color: '#FFF2D9' },
+  { match: 'char dham path', color: '#FFF0E0' },
+  { match: 'honeymoon diaries', color: '#FFEBEB' },
+  { match: 'hidden hamlets', color: '#D7F5E2' },
+  { match: 'kailash kora', color: '#F1FBFE' },
+  { match: 'host of himalayas', color: '#F4FBEC' },
 ]
 
 function getCollectionBg(name: string, fallbackIndex: number): string {
   const lower = name.toLowerCase()
   const found = COLLECTION_COLORS.find((c) => lower.includes(c.match))
   if (found) {
-    const darker = darkenHex(found.color, 0.15)
+    const darker = darkenHex(found.color, 0.04)
     return `linear-gradient(135deg, ${found.color} 0%, ${darker} 100%)`
   }
   return ROW_BG[fallbackIndex % 2]
