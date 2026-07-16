@@ -255,7 +255,7 @@ export default function PackageCard({
               fontWeight: 600,
             }}
           >
-            Book Now
+            View Details
           </div>
 
         </div>
