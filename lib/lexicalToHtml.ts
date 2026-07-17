@@ -46,7 +46,9 @@ function renderNode(node: unknown): string {
       return `<blockquote>${renderChildren(n.children)}</blockquote>`
 
     case 'link': {
-      const href = escapeHtml(typeof n.fields?.url === 'string' ? n.fields.url : '')
+      const rawUrl = typeof n.fields?.url === 'string' ? n.fields.url : ''
+      const safeUrl = /^(https?:|mailto:|tel:|[/#])/i.test(rawUrl) ? rawUrl : '#'
+      const href = escapeHtml(safeUrl)
       return `<a href="${href}">${renderChildren(n.children)}</a>`
     }
 
