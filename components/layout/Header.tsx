@@ -4,6 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { resolveMediaUrl } from '@/lib/payload-api'
+import SearchOverlay from '@/components/search/SearchOverlay'
 
 type NavLink = { href: string; label: string; isDeals?: boolean }
 
@@ -21,6 +22,7 @@ const NAV_LINKS: NavLink[] = [
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [searchOpen, setSearchOpen] = useState(false)
 
   return (
     <header
@@ -75,6 +77,7 @@ export default function Header() {
           {/* Search */}
           <button
             aria-label="Search"
+            onClick={() => setSearchOpen(true)}
             className="p-2 text-[#1A1A1A] hover:text-[#1E6B2E] transition-colors duration-200"
           >
             <svg
@@ -153,6 +156,8 @@ export default function Header() {
           ))}
         </div>
       )}
+
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </header>
   )
 }

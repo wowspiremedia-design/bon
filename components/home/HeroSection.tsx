@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import Image from 'next/image'
+import SearchBox from '@/components/search/SearchBox'
 
 interface Props {
   images: string[]
@@ -81,6 +82,10 @@ export default function HeroSection({ images, label, headline, subtitle }: Props
             {displaySubtitle}
           </p>
         )}
+      </div>
+
+      <div className="hidden md:block absolute left-1/2 -translate-x-1/2 top-[20%] z-30 w-full max-w-[480px] px-4">
+        <SearchBox variant="hero" />
       </div>
 
       {/* Left arrow */}
