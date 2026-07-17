@@ -16,7 +16,7 @@ export default function HeroSection({ images, label, headline, subtitle }: Props
 
   const displayLabel = label ?? 'BON VOYAGERS'
   const displayHeadline = headline ?? (<>Soulful, Slow &<br />Smart Travel</>)
-  const displaySubtitle = subtitle ?? "Discover India's most extraordinary destinations with Bon Voyagers"
+  const displaySubtitle = subtitle ?? "Discover India's hidden, offbeat, and extraordinary destinations with Bon Voyagers."
 
   const goTo = useCallback((index: number) => {
     setCurrent(index)
