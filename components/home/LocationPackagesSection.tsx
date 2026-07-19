@@ -5,6 +5,7 @@ import Link from 'next/link'
 import PackageCard from '@/components/shared/PackageCard'
 import type { PackageCardProps } from '@/components/shared/PackageCard'
 import type { DepartureState } from '@/lib/payload-api'
+import { stateToSlug } from '@/lib/geoState'
 
 interface LocationPackagesSectionProps {
   city: string
@@ -37,7 +38,7 @@ export default function LocationPackagesSection({ city, state, packages }: Locat
 
   if (packages.length === 0) return null
 
-  const viewAllHref = state ? `/packages?state=${state}&city=${encodeURIComponent(city)}` : '/packages'
+  const viewAllHref = state ? `/best-tour-packages/${stateToSlug(state)}` : '/packages'
 
   return (
     <section style={{ background: '#FFFFFF', padding: '32px 0' }}>

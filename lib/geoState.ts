@@ -57,3 +57,14 @@ export function resolveDisplayCity(
   if (state) return formatStateLabel(state)
   return 'Kolkata'
 }
+
+// e.g. 'west_bengal' -> 'west-bengal'
+export function stateToSlug(state: DepartureState): string {
+  return state.replace(/_/g, '-')
+}
+
+// e.g. 'west-bengal' -> 'west_bengal', or null if it doesn't match a real state
+export function slugToState(slug: string): DepartureState | null {
+  const candidate = slug.replace(/-/g, '_')
+  return DEPARTURE_STATE_SET.has(candidate) ? (candidate as DepartureState) : null
+}
