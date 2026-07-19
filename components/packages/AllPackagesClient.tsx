@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import PackageCard, { type PackageCardProps } from '@/components/shared/PackageCard'
+import type { DepartureState } from '@/lib/payload-api'
 
 // ── Config ─────────────────────────────────────────────────────────────────────
 
@@ -86,6 +87,7 @@ interface Props {
   initialNextCursor: number | null
   initialHasMore: boolean
   initialTotalCount: number
+  lockedState?: DepartureState
 }
 
 // ── Component ──────────────────────────────────────────────────────────────────
@@ -96,6 +98,7 @@ export default function AllPackagesClient({
   initialNextCursor,
   initialHasMore,
   initialTotalCount,
+  lockedState,
 }: Props) {
   const [selectedCategories, setSelectedCategories]           = useState<number[]>([])
   const [selectedExperienceTypes, setSelectedExperienceTypes] = useState<string[]>([])
@@ -150,6 +153,7 @@ export default function AllPackagesClient({
       if (selectedExperienceTypes.length > 0) qs.set('experienceType', selectedExperienceTypes.join(','))
       if (selectedActivities.length > 0) qs.set('activities', selectedActivities.join(','))
       if (selectedBestSeasons.length > 0) qs.set('bestSeason', selectedBestSeasons.join(','))
+      if (lockedState) qs.set('state', lockedState)
       qs.set('sort', sort)
       qs.set('cursor', String(targetCursor))
 
@@ -168,7 +172,7 @@ export default function AllPackagesClient({
     } finally {
       if (requestId === requestIdRef.current) setLoading(false)
     }
-  }, [selectedCategories, selectedPrice, selectedDurations, selectedExperienceTypes, selectedActivities, selectedBestSeasons, sort])
+  }, [selectedCategories, selectedPrice, selectedDurations, selectedExperienceTypes, selectedActivities, selectedBestSeasons, lockedState, sort])
 
   // Infinite scroll: instead of a single sentinel after the last card, a
   // moving trigger point watches whichever loaded card currently sits at
@@ -513,6 +517,7 @@ export default function AllPackagesClient({
               onToggleDuration={toggleDuration}
               filtersActive={filtersActive}
               onClearAll={clearAll}
+              hideCategoryFilter={Boolean(lockedState)}
             />
           </div>
         </aside>
@@ -696,6 +701,7 @@ export default function AllPackagesClient({
               onToggleDuration={toggleDuration}
               filtersActive={filtersActive}
               onClearAll={clearAll}
+              hideCategoryFilter={Boolean(lockedState)}
               hideTitle
               reservedBottomSpace={mobileFooterHeight}
             />
@@ -774,6 +780,7 @@ interface FilterPanelProps {
   onToggleDuration: (key: string) => void
   filtersActive: boolean
   onClearAll: () => void
+  hideCategoryFilter?: boolean
   hideTitle?: boolean
   reservedBottomSpace?: number
 }
@@ -797,6 +804,7 @@ function FilterPanel({
   onToggleDuration,
   filtersActive,
   onClearAll,
+  hideCategoryFilter,
   hideTitle,
   reservedBottomSpace = 0,
 }: FilterPanelProps) {
@@ -817,32 +825,36 @@ function FilterPanel({
       )}
 
       {/* Category */}
-      <div style={{ marginBottom: '20px' }}>
-        <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '10px' }}>Category</p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {visibleCategories.map((c) => (
-            <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-              <input
-                type="checkbox"
-                checked={selectedCategories.includes(c.id)}
-                onChange={() => onToggleCategory(c.id)}
-                style={{ accentColor: '#1E6B2E', width: '15px', height: '15px', cursor: 'pointer' }}
-              />
-              <span style={{ fontSize: '13px', color: '#4A4A4A' }}>{c.name} ({c.count})</span>
-            </label>
-          ))}
-        </div>
-        {categories.length > SHOW_MORE_THRESHOLD && (
-          <p
-            onClick={() => setCategoryExpanded((prev) => !prev)}
-            style={{ fontSize: '13px', color: '#1E6B2E', cursor: 'pointer', textDecoration: 'none', marginTop: '8px' }}
-          >
-            {categoryExpanded ? 'Show less' : 'Show more'}
-          </p>
-        )}
-      </div>
+      {!hideCategoryFilter && (
+        <>
+          <div style={{ marginBottom: '20px' }}>
+            <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '10px' }}>Category</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {visibleCategories.map((c) => (
+                <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={selectedCategories.includes(c.id)}
+                    onChange={() => onToggleCategory(c.id)}
+                    style={{ accentColor: '#1E6B2E', width: '15px', height: '15px', cursor: 'pointer' }}
+                  />
+                  <span style={{ fontSize: '13px', color: '#4A4A4A' }}>{c.name} ({c.count})</span>
+                </label>
+              ))}
+            </div>
+            {categories.length > SHOW_MORE_THRESHOLD && (
+              <p
+                onClick={() => setCategoryExpanded((prev) => !prev)}
+                style={{ fontSize: '13px', color: '#1E6B2E', cursor: 'pointer', textDecoration: 'none', marginTop: '8px' }}
+              >
+                {categoryExpanded ? 'Show less' : 'Show more'}
+              </p>
+            )}
+          </div>
 
-      <div style={{ borderTop: '1px solid #E0EBE1', marginBottom: '20px' }} />
+          <div style={{ borderTop: '1px solid #E0EBE1', marginBottom: '20px' }} />
+        </>
+      )}
 
       {/* Experience Type */}
       <div style={{ marginBottom: '20px' }}>

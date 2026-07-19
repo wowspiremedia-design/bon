@@ -277,6 +277,67 @@ export async function getPackagesByCategory(
   }
 }
 
+export async function getPackagesByDepartureState(
+  state: DepartureState,
+  limit = 20,
+): Promise<PayloadPackage[]> {
+  const path = `/api/packages?where[departureState][in]=${state}&limit=${limit}`
+  const res = await payloadFetch<PayloadListResponse<PayloadPackage>>(path)
+  if (!Array.isArray(res.docs)) {
+    console.warn(`payloadFetch: expected a docs array from ${path}, got a non-array response`, res)
+    return []
+  }
+  return res.docs.map(resolvePackageMedia)
+}
+
+// Deterministic string hash → 32-bit seed, then a small seeded PRNG (mulberry32)
+// so the "random" fallback pool is stable for everyone all day and only
+// reshuffles when the date itself changes, with no database changes needed.
+function seedFromDateString(dateStr: string): number {
+  let hash = 0
+  for (let i = 0; i < dateStr.length; i++) {
+    hash = (hash << 5) - hash + dateStr.charCodeAt(i)
+    hash |= 0
+  }
+  return hash
+}
+
+function mulberry32(seed: number): () => number {
+  let a = seed
+  return function () {
+    a |= 0
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+function seededShuffle<T>(items: T[], seed: number): T[] {
+  const result = [...items]
+  const rand = mulberry32(seed)
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
+
+const FALLBACK_POOL_SIZE = 60
+
+export async function getFallbackPackages(limit = 18): Promise<PayloadPackage[]> {
+  const path = `/api/packages?limit=${FALLBACK_POOL_SIZE}`
+  const res = await payloadFetch<PayloadListResponse<PayloadPackage>>(path)
+  if (!Array.isArray(res.docs)) {
+    console.warn(`payloadFetch: expected a docs array from ${path}, got a non-array response`, res)
+    return []
+  }
+  const pool = res.docs.map(resolvePackageMedia)
+  const todayKey = new Date().toISOString().slice(0, 10) // YYYY-MM-DD
+  const seed = seedFromDateString(todayKey)
+  return seededShuffle(pool, seed).slice(0, limit)
+}
+
 export interface PayloadCollection {
   id: number
   name: string
@@ -413,6 +474,50 @@ export type SortValue = 'popular' | 'price_asc' | 'price_desc' | 'duration'
 
 export const DURATION_BAND_KEYS = ['1-3', '4-6', '7-10', '10+'] as const
 
+// All 36 real Indian states/UTs used for the `departureState` field on the
+// Packages collection in Payload, matching the exact snake_case enum values
+// defined there.
+export const DEPARTURE_STATE_VALUES = [
+  'andhra_pradesh',
+  'arunachal_pradesh',
+  'assam',
+  'bihar',
+  'chhattisgarh',
+  'goa',
+  'gujarat',
+  'haryana',
+  'himachal_pradesh',
+  'jharkhand',
+  'karnataka',
+  'kerala',
+  'madhya_pradesh',
+  'maharashtra',
+  'manipur',
+  'meghalaya',
+  'mizoram',
+  'nagaland',
+  'odisha',
+  'punjab',
+  'rajasthan',
+  'sikkim',
+  'tamil_nadu',
+  'telangana',
+  'tripura',
+  'uttar_pradesh',
+  'uttarakhand',
+  'west_bengal',
+  'andaman_and_nicobar_islands',
+  'chandigarh',
+  'dadra_and_nagar_haveli_and_daman_and_diu',
+  'delhi',
+  'jammu_and_kashmir',
+  'ladakh',
+  'lakshadweep',
+  'puducherry',
+] as const
+
+export type DepartureState = typeof DEPARTURE_STATE_VALUES[number]
+
 const DURATION_BANDS: Record<string, { min: number; max: number }> = {
   '1-3':  { min: 1,  max: 3 },
   '4-6':  { min: 4,  max: 6 },
@@ -441,6 +546,7 @@ export interface FilteredPayloadPackagesParams {
   experienceType?: string[]
   activities?: string[]
   bestSeason?: string[]
+  departureState?: DepartureState
   sort?: SortValue
   cursor?: number
 }
@@ -460,6 +566,7 @@ async function fetchFilteredPackagesPage(
   experienceType: string[],
   activities: string[],
   bestSeason: string[],
+  departureState: DepartureState | undefined,
   sort: FilteredPayloadPackagesParams['sort'],
 ): Promise<{ packages: PayloadPackage[]; totalPages: number; total: number }> {
   let qs = `page=${page}&limit=${FILTER_PER_PAGE}`
@@ -469,6 +576,7 @@ async function fetchFilteredPackagesPage(
   if (experienceType.length > 0) qs += `&where[experienceType][in]=${experienceType.join(',')}`
   if (activities.length > 0) qs += `&where[activities][in]=${activities.join(',')}`
   if (bestSeason.length > 0) qs += `&where[bestSeason][in]=${bestSeason.join(',')}`
+  if (departureState) qs += `&where[departureState][in]=${departureState}`
   if (sort === 'price_asc') qs += '&sort=price'
   if (sort === 'price_desc') qs += '&sort=-price'
 
@@ -496,6 +604,7 @@ export async function getFilteredPayloadPackages(
     experienceType = [],
     activities = [],
     bestSeason = [],
+    departureState,
     sort = 'popular',
     cursor = 1,
   } = params
@@ -508,7 +617,7 @@ export async function getFilteredPayloadPackages(
 
   while (true) {
     fetches++
-    const { packages: batch, totalPages: tp, total } = await fetchFilteredPackagesPage(page, categories, minPrice, maxPrice, experienceType, activities, bestSeason, sort)
+    const { packages: batch, totalPages: tp, total } = await fetchFilteredPackagesPage(page, categories, minPrice, maxPrice, experienceType, activities, bestSeason, departureState, sort)
     totalPages = tp
     totalCount = total
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getFilteredPayloadPackages, DURATION_BAND_KEYS, type SortValue } from '@/lib/payload-api'
+import { getFilteredPayloadPackages, DURATION_BAND_KEYS, DEPARTURE_STATE_VALUES, type SortValue, type DepartureState } from '@/lib/payload-api'
 import { getClientIp, isRateLimited } from '@/lib/apiRateLimit'
 
 const VALID_SORTS: SortValue[] = ['popular', 'price_asc', 'price_desc', 'duration']
@@ -40,6 +40,11 @@ export async function GET(request: NextRequest) {
   const experienceType = parseList(searchParams.get('experienceType'))
   const activities = parseList(searchParams.get('activities'))
   const bestSeason = parseList(searchParams.get('bestSeason'))
+  const stateRaw = searchParams.get('state')
+  const departureState: DepartureState | undefined =
+    stateRaw !== null && (DEPARTURE_STATE_VALUES as readonly string[]).includes(stateRaw)
+      ? (stateRaw as DepartureState)
+      : undefined
   const sortRaw = searchParams.get('sort') ?? 'popular'
   const sort: SortValue = (VALID_SORTS as string[]).includes(sortRaw) ? (sortRaw as SortValue) : 'popular'
   const cursorRaw = searchParams.get('cursor')
@@ -54,6 +59,7 @@ export async function GET(request: NextRequest) {
       experienceType,
       activities,
       bestSeason,
+      departureState,
       sort,
       cursor,
     })

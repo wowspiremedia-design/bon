@@ -1,3 +1,4 @@
+import { headers } from 'next/headers'
 import HeroSection from '@/components/home/HeroSection'
 import HeroCarousel from '@/components/home/HeroCarousel'
 import TrustStrip from '@/components/home/TrustStrip'
@@ -5,7 +6,16 @@ import FeaturedPackagesClient from '@/components/home/FeaturedPackagesClient'
 import PopularDestinations from '@/components/home/PopularDestinations'
 import CollectionsSection from '@/components/home/CollectionsSection'
 import CTASection from '@/components/home/CTASection'
-import { getDestinationHeroSlides, getCategories, getPackagesByCategory, mapPayloadPackageToCard } from '@/lib/payload-api'
+import LocationPackagesSection from '@/components/home/LocationPackagesSection'
+import {
+  getDestinationHeroSlides,
+  getCategories,
+  getPackagesByCategory,
+  getPackagesByDepartureState,
+  getFallbackPackages,
+  mapPayloadPackageToCard,
+} from '@/lib/payload-api'
+import { detectDepartureState, resolveDisplayCity } from '@/lib/geoState'
 import type { PackageCardProps } from '@/components/shared/PackageCard'
 
 // ── Category config ────────────────────────────────────────────────────────────
@@ -24,10 +34,24 @@ const TAB_LABELS = ['All', 'Kashmir', 'Andaman', 'Meghalaya', 'Ladakh', 'Bhutan'
 // ── Page ───────────────────────────────────────────────────────────────────────
 
 export default async function Home() {
-  const [heroSlides, allCategories] = await Promise.all([
+  const headersList = await headers()
+  const geoCountry = headersList.get('cf-ipcountry')
+  const geoRegion = headersList.get('cf-region')
+  const geoCity = headersList.get('cf-ipcity')
+  const departureState = detectDepartureState(geoCountry, geoRegion)
+  console.log('[geo]', {
+    city: geoCity ?? 'unknown',
+    departureState: departureState ?? 'fallback',
+  })
+
+  const [heroSlides, allCategories, locationPackagesRaw] = await Promise.all([
     getDestinationHeroSlides(),
     getCategories(),
+    departureState ? getPackagesByDepartureState(departureState) : getFallbackPackages(),
   ])
+
+  const locationPackages = locationPackagesRaw.map((p) => mapPayloadPackageToCard(p))
+  const locationCity = resolveDisplayCity(geoCity, departureState)
 
   const categories = CATEGORY_CONFIG
     .map(({ slug, label }) => {
@@ -71,6 +95,9 @@ export default async function Home() {
       <div className="pb-12">
         <CollectionsSection />
       </div>
+
+      {/* 4.5 Location-based packages */}
+      <LocationPackagesSection city={locationCity} state={departureState} packages={locationPackages} />
 
       {/* 5. Featured packages */}
       <div className="py-20">
