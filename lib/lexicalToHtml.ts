@@ -80,3 +80,25 @@ export function lexicalToHtml(content: unknown): string {
     return ''
   }
 }
+
+// One HTML string per top-level node, instead of one joined blob — for content
+// that was entered as a flat stack of paragraphs (no real list/listitem nodes)
+// but should still render as individual, separately-styled rows.
+export function lexicalToLines(content: unknown): string[] {
+  try {
+    if (!content || typeof content !== 'object') return []
+    const withRoot = content as { root?: unknown }
+    const root = withRoot.root && typeof withRoot.root === 'object' ? withRoot.root : content
+    const children = (root as { children?: unknown }).children
+    if (!Array.isArray(children)) return []
+    return children
+      .map((node) => {
+        const n = node as LexicalNode
+        return n.type === 'paragraph' ? renderChildren(n.children) : renderNode(node)
+      })
+      .map((html) => html.trim())
+      .filter(Boolean)
+  } catch {
+    return []
+  }
+}
