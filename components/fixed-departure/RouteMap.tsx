@@ -84,6 +84,7 @@ export default function RouteMap({ routeStops }: RouteMapProps) {
       },
       center: [routeStops[0].longitude, routeStops[0].latitude],
       zoom: 8,
+      cooperativeGestures: true,
     })
     mapRef.current = map
 
