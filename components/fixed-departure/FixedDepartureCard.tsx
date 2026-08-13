@@ -222,7 +222,7 @@ export default function FixedDepartureCard({
               </p>
               <p style={{ fontSize: '12px', color: '#6B6B6B' }}>per person</p>
             </div>
-            <SharePackageButton title={title} slug={slug} />
+            <SharePackageButton title={title} slug={slug} basePath="/fixed-departure" />
           </div>
 
           {/* View Details button — full width */}

@@ -3,13 +3,21 @@
 import { useState } from 'react'
 import { Share2, Check } from 'lucide-react'
 
-export default function SharePackageButton({ title, slug }: { title: string; slug: string }) {
+export default function SharePackageButton({
+  title,
+  slug,
+  basePath = '/package',
+}: {
+  title: string
+  slug: string
+  basePath?: string
+}) {
   const [copied, setCopied] = useState(false)
 
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    const url = `${window.location.origin}/package/${slug}`
+    const url = `${window.location.origin}${basePath}/${slug}`
     try {
       if (navigator.share) {
         await navigator.share({ title, url })
