@@ -25,7 +25,7 @@ function darkenHex(hex: string, amount = 0.15): string {
 }
 
 const COLLECTION_COLORS: { match: string; color: string }[] = [
-  { match: 'suhani safar', color: '#FFF8FA' },
+  { match: 'her journeys', color: '#FFF8FA' },
   { match: 'sanatan path', color: '#FFF2D9' },
   { match: 'char dham path', color: '#FFF0E0' },
   { match: 'honeymoon diaries', color: '#FFEBEB' },

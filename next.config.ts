@@ -23,6 +23,20 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/package/andaman-tour-women-bon-suhani-safar',
+        destination: '/package/andaman-tour-women-bon-her-journeys',
+        permanent: true,
+      },
+      {
+        source: '/package/goa-tour-package-women-suhani-safar',
+        destination: '/package/goa-tour-package-women-her-journeys',
+        permanent: true,
+      },
+    ]
+  },
   async headers() {
     return [
       {
