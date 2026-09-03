@@ -5,6 +5,8 @@ import type { LucideIcon } from 'lucide-react'
 import { getMicePageGlobal, type MiceValueProp, type MiceService } from '@/lib/mice-api'
 import ScrollReveal from '@/components/mice/ScrollReveal'
 import LinkedinGallery from '@/components/mice/LinkedinGallery'
+import MiceEnquiryModal from '@/components/mice/MiceEnquiryModal'
+import FaqAccordion from '@/components/mice/FaqAccordion'
 
 // ── Metadata ───────────────────────────────────────────────────────────────────
 
@@ -119,25 +121,12 @@ export default async function MicePage() {
 
               {/* Solid, on-palette (site's own brand green, not the
                   WhatsApp-specific green used elsewhere) so it reads
-                  clearly against any photo the scrim sits over. No arrow,
-                  no onClick yet — placeholder until the enquiry form
-                  exists. */}
-              <button
-                type="button"
-                style={{
-                  background: '#1E6B2E',
-                  color: '#FFFFFF',
-                  fontWeight: 700,
-                  fontSize: '15px',
-                  padding: '14px 28px',
-                  borderRadius: '10px',
-                  border: 'none',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
-                }}
-              >
-                Enquire Now
-              </button>
+                  clearly against any photo the scrim sits over. No arrow.
+                  MiceEnquiryModal renders this exact button style itself
+                  (it owns the open/close state, since this file is a
+                  server component) and opens the real enquiry form on
+                  click. */}
+              <MiceEnquiryModal />
             </div>
           </div>
         </section>
@@ -162,6 +151,12 @@ export default async function MicePage() {
         {mice && mice.services.length > 0 && (
           <Section title="Our Services">
             <ServiceList items={mice.services} />
+          </Section>
+        )}
+
+        {mice && mice.faqs.length > 0 && (
+          <Section title="Frequently Asked Questions">
+            <FaqAccordion faqs={mice.faqs} />
           </Section>
         )}
       </div>
