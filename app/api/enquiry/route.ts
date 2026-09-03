@@ -48,7 +48,10 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, phone, email, message, packageTitle, price, regularPrice, packageId, website } = body
+    const {
+      name, phone, email, message, packageTitle, price, regularPrice, packageId, website,
+      companyName, eventType, travelDate, travellerCount,
+    } = body
 
     if (!name || !phone) {
       return NextResponse.json({ error: 'Name and phone are required.' }, { status: 400 })
@@ -79,29 +82,64 @@ export async function POST(request: NextRequest) {
     const safePhone = escapeHtml(phone)
     const safeEmail = escapeHtml(email || 'Not provided')
     const safeMessage = escapeHtml(message || 'Not provided')
-    const safePackageTitle = escapeHtml(packageTitle)
 
-    const html = [
-      'Hi Admin,<br><br>',
-      `<b>${safeName}</b> wants to know more about:<br><br>`,
-      `<b>${safePackageTitle}</b><br><br>`,
-      `Package Price: ₹${regularPrice}<br>`,
-      `Sale Price: ₹${price}<br>`,
-      `Package ID: ${packageId}<br>`,
-      '<hr><br>',
-      'Contact Details<br><br>',
-      `Name: ${safeName}<br>`,
-      `Phone: ${safePhone}<br>`,
-      `Email: ${safeEmail}<br><br>`,
-      'Message:<br>',
-      `${safeMessage}<br><br>`,
-      'Submitted from Bon Voyagers website',
-    ].join('')
+    // A MICE enquiry is identified purely by the presence of companyName —
+    // no new required fields, no change to validation above, so the
+    // package-enquiry path below is byte-for-byte unchanged when it's absent.
+    const isMiceEnquiry = Boolean(companyName)
+
+    let subject: string
+    let html: string
+
+    if (isMiceEnquiry) {
+      const safeCompanyName = escapeHtml(companyName)
+      const safeEventType = escapeHtml(eventType || 'Not provided')
+      const safeTravelDate = escapeHtml(travelDate || 'Not provided')
+      const safeTravellerCount = escapeHtml(String(travellerCount ?? 'Not provided'))
+
+      subject = `New MICE Enquiry: ${companyName}`
+      html = [
+        'Hi Admin,<br><br>',
+        `<b>${safeName}</b> from <b>${safeCompanyName}</b> has a MICE enquiry:<br><br>`,
+        `Company Name: ${safeCompanyName}<br>`,
+        `Event Type: ${safeEventType}<br>`,
+        `Travel Date: ${safeTravelDate}<br>`,
+        `Traveller Count: ${safeTravellerCount}<br>`,
+        '<hr><br>',
+        'Contact Details<br><br>',
+        `Name: ${safeName}<br>`,
+        `Phone: ${safePhone}<br>`,
+        `Email: ${safeEmail}<br><br>`,
+        'Message:<br>',
+        `${safeMessage}<br><br>`,
+        'Submitted from Bon Voyagers website',
+      ].join('')
+    } else {
+      const safePackageTitle = escapeHtml(packageTitle)
+
+      subject = `New Package Enquiry: ${packageTitle}`
+      html = [
+        'Hi Admin,<br><br>',
+        `<b>${safeName}</b> wants to know more about:<br><br>`,
+        `<b>${safePackageTitle}</b><br><br>`,
+        `Package Price: ₹${regularPrice}<br>`,
+        `Sale Price: ₹${price}<br>`,
+        `Package ID: ${packageId}<br>`,
+        '<hr><br>',
+        'Contact Details<br><br>',
+        `Name: ${safeName}<br>`,
+        `Phone: ${safePhone}<br>`,
+        `Email: ${safeEmail}<br><br>`,
+        'Message:<br>',
+        `${safeMessage}<br><br>`,
+        'Submitted from Bon Voyagers website',
+      ].join('')
+    }
 
     await transporter.sendMail({
       from: `"Bon Voyagers Enquiry" <${SMTP_FROM}>`,
       to: TO_ADDRESSES,
-      subject: `New Package Enquiry: ${packageTitle}`,
+      subject,
       html,
     })
 

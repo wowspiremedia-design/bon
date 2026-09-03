@@ -19,6 +19,7 @@ const NAV_LINKS: NavLink[] = [
   { href: '/deals', label: 'Deals', isDeals: true },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
+  { href: '/mice', label: 'MICE' },
 ]
 
 export default function Header() {
