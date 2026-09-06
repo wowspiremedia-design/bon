@@ -14,6 +14,13 @@ import {
   MessageSquare,
 } from 'lucide-react'
 
+// Meta Pixel's base snippet (app/layout.tsx) defines this as a real global
+// function, not a module export — no import exists for it anywhere in this
+// codebase. Declaring it here rather than reaching for `any`.
+declare global {
+  function fbq(...args: unknown[]): void
+}
+
 interface Props {
   packageTitle: string
   duration?: string
@@ -109,6 +116,16 @@ export default function EnquiryPopup({
       })
       if (!res.ok) throw new Error('Request failed')
       setStatus('success')
+
+      // Fires only once res.ok above has confirmed the enquiry actually
+      // reached the server — never on the client-side validation return
+      // at the top of this function, never on the network/API failure
+      // path below. Guarded so a missing/blocked fbq (ad blockers strip
+      // it entirely) can never throw into the catch below and misreport
+      // this genuinely successful submission as an error.
+      if (typeof fbq === 'function') {
+        fbq('track', 'Lead')
+      }
     } catch {
       setStatus('error')
     }

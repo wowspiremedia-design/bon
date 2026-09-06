@@ -74,6 +74,16 @@ export default function MiceEnquiryModal() {
       })
       if (!res.ok) throw new Error('Request failed')
       setStatus('success')
+
+      // Same pattern as components/shared/EnquiryPopup.tsx: fires only
+      // once res.ok above has confirmed the enquiry actually reached the
+      // server — never on the client-side validation return above, never
+      // on the network/API failure path below. Guarded so a missing/
+      // blocked fbq can't throw into the catch below and misreport this
+      // genuinely successful submission as an error.
+      if (typeof fbq === 'function') {
+        fbq('track', 'Lead')
+      }
     } catch {
       setStatus('error')
     }
