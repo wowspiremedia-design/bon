@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const {
       name, phone, email, message, packageTitle, price, regularPrice, packageId, website,
-      companyName, eventType, travelDate, travellerCount,
+      companyName, eventType, travelDate, destination, travellerCount,
     } = body
 
     if (!name || !phone) {
@@ -96,6 +96,11 @@ export async function POST(request: NextRequest) {
       const safeEventType = escapeHtml(eventType || 'Not provided')
       const safeTravelDate = escapeHtml(travelDate || 'Not provided')
       const safeTravellerCount = escapeHtml(String(travellerCount ?? 'Not provided'))
+      // Optional — no fallback text, the line itself is simply omitted
+      // below when absent, rather than showing "Destination: Not provided".
+      const safeDestination = typeof destination === 'string' && destination.trim() !== ''
+        ? escapeHtml(destination)
+        : null
 
       subject = `New MICE Enquiry: ${companyName}`
       html = [
@@ -104,6 +109,7 @@ export async function POST(request: NextRequest) {
         `Company Name: ${safeCompanyName}<br>`,
         `Event Type: ${safeEventType}<br>`,
         `Travel Date: ${safeTravelDate}<br>`,
+        ...(safeDestination ? [`Destination: ${safeDestination}<br>`] : []),
         `Traveller Count: ${safeTravellerCount}<br>`,
         '<hr><br>',
         'Contact Details<br><br>',

@@ -60,7 +60,7 @@ export default async function MicePage() {
             smaller text. The image (position:absolute; inset:0; fill)
             automatically stretches to match whatever height the section
             ends up at. */}
-        <section className="relative w-full overflow-hidden flex flex-col justify-end min-h-[480px] lg:min-h-[560px]">
+        <section className="relative w-full overflow-hidden flex flex-col justify-end items-center min-h-[480px] lg:min-h-[560px]">
           {mice?.heroImage?.url ? (
             <Image
               src={mice.heroImage.url}
@@ -86,38 +86,64 @@ export default async function MicePage() {
             }}
           />
 
-          <div className="relative z-10" style={{ padding: 'clamp(24px, 4vw, 48px) clamp(16px, 4vw, 48px)' }}>
-            <div className="mx-auto" style={{ maxWidth: '1280px' }}>
-              <h1
-                className="font-display"
+          <div className="relative z-10 text-center" style={{ padding: 'clamp(24px, 4vw, 48px) clamp(16px, 4vw, 48px)' }}>
+            <div className="mx-auto text-center" style={{ maxWidth: '1280px' }}>
+              {/* Hardcoded tagline, not sourced from Payload — heroHeadline/
+                  heroSubtext moved below, out of the image entirely.
+                  Deliberately not an h1/h2 — the real page <h1> lives in
+                  the plain section right after this one — but sized and
+                  staged to be the dominant visual moment in the hero
+                  itself, since it's now the only text overlaid on the
+                  photo. The dark pill (not a full-bleed panel, not the
+                  light frosted-glass badges used for the duration/people
+                  pills elsewhere on package pages — this one needs to hold
+                  real body text, not a two-word label) guarantees
+                  legibility regardless of what's behind it in the photo,
+                  independent of the gradient scrim. The thin bar beneath
+                  is this project's actual brand green (#1E6B2E) — used as
+                  a literal hex everywhere else in this codebase; there's
+                  no CSS variable defined for it (checked globals.css —
+                  only neutral/whatsapp tokens exist), so this matches the
+                  codebase's own convention rather than introducing one. */}
+              <div
                 style={{
-                  fontSize: 'clamp(1.75rem, 4.5vw, 2.75rem)',
-                  fontWeight: 700,
-                  color: '#FFFFFF',
-                  lineHeight: 1.2,
-                  marginBottom: '16px',
-                  maxWidth: '760px',
-                  textShadow: '0 2px 12px rgba(0,0,0,0.4)',
-                  fontFamily: 'var(--font-playfair)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  marginBottom: '28px',
                 }}
               >
-                {mice?.heroHeadline || 'Corporate MICE Packages Tailored to Your Team'}
-              </h1>
-
-              {mice?.heroSubtext && (
                 <p
+                  className="font-display"
                   style={{
-                    fontSize: '15px',
-                    color: 'rgba(255,255,255,0.9)',
-                    lineHeight: 1.65,
-                    maxWidth: '50ch',
-                    marginBottom: '28px',
-                    textShadow: '0 1px 8px rgba(0,0,0,0.5)',
+                    fontSize: 'clamp(2rem, 5vw, 3.25rem)',
+                    fontWeight: 600,
+                    color: '#FFFFFF',
+                    lineHeight: 1.25,
+                    margin: 0,
+                    maxWidth: '720px',
+                    textShadow: '0 2px 16px rgba(0,0,0,0.5)',
+                    fontFamily: 'var(--font-playfair)',
+                    background: 'rgba(13,26,15,0.55)',
+                    backdropFilter: 'blur(6px)',
+                    WebkitBackdropFilter: 'blur(6px)',
+                    borderRadius: '9999px',
+                    padding: 'clamp(16px, 3vw, 24px) clamp(28px, 5vw, 48px)',
                   }}
                 >
-                  {mice.heroSubtext}
+                  You set the ambition. We handle everything else.
                 </p>
-              )}
+                <span
+                  aria-hidden="true"
+                  style={{
+                    marginTop: '12px',
+                    width: '64px',
+                    height: '3px',
+                    borderRadius: '2px',
+                    background: '#1E6B2E',
+                  }}
+                />
+              </div>
 
               {/* Solid, on-palette (site's own brand green, not the
                   WhatsApp-specific green used elsewhere) so it reads
@@ -131,6 +157,42 @@ export default async function MicePage() {
           </div>
         </section>
       </ScrollReveal>
+
+      {/* ── Headline + subtext — moved out of the hero image entirely.
+          Plain white section (inherits the page's default #FFFFFF
+          background, same as the Body wrapper below), the real page <h1>
+          lives here now instead of overlaid on the photo. Data is
+          unchanged — same heroHeadline/heroSubtext fields, same fallback,
+          same conditional rendering, just relocated in the markup. */}
+      <div className="mx-auto" style={{ maxWidth: '1280px', padding: 'clamp(32px, 5vw, 56px) clamp(16px, 4vw, 40px) 0' }}>
+        <h1
+          className="font-display"
+          style={{
+            fontSize: 'clamp(1.75rem, 4.5vw, 2.75rem)',
+            fontWeight: 700,
+            color: '#1A1A1A',
+            lineHeight: 1.2,
+            marginBottom: '16px',
+            maxWidth: '760px',
+            fontFamily: 'var(--font-playfair)',
+          }}
+        >
+          {mice?.heroHeadline || 'Corporate MICE Packages Tailored to Your Team'}
+        </h1>
+
+        {mice?.heroSubtext && (
+          <p
+            style={{
+              fontSize: '15px',
+              color: '#4A4A4A',
+              lineHeight: 1.65,
+              maxWidth: '50ch',
+            }}
+          >
+            {mice.heroSubtext}
+          </p>
+        )}
+      </div>
 
       {/* ── Body ── */}
       <div className="mx-auto" style={{ maxWidth: '1280px', padding: 'clamp(24px, 4vw, 48px) clamp(16px, 4vw, 40px) 80px' }}>

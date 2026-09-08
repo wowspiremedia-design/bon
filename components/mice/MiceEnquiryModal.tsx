@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Building2, Calendar, Mail, MessageSquare, Phone, User, Users, X } from 'lucide-react'
+import { Building2, Calendar, Mail, MapPin, MessageSquare, Phone, User, Users, X } from 'lucide-react'
 
 // Self-contained trigger + dialog, same architecture as
 // components/shared/EnquiryPopup.tsx (createPortal into document.body, same
@@ -19,6 +19,7 @@ export default function MiceEnquiryModal() {
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [travelDate, setTravelDate] = useState('')
+  const [destination, setDestination] = useState('')
   const [travellerCount, setTravellerCount] = useState('')
   const [message, setMessage] = useState('')
   const [website, setWebsite] = useState('')
@@ -67,6 +68,7 @@ export default function MiceEnquiryModal() {
           companyName,
           eventType: 'MICE Enquiry',
           travelDate,
+          destination,
           travellerCount,
           message,
           website,
@@ -251,6 +253,15 @@ export default function MiceEnquiryModal() {
                       type="date"
                       value={travelDate}
                       onChange={(e) => setTravelDate(e.target.value)}
+                      style={inputStyle}
+                    />
+                  </Field>
+
+                  <Field label="Destination (optional)" icon={<MapPin size={14} />}>
+                    <input
+                      type="text"
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
                       style={inputStyle}
                     />
                   </Field>
