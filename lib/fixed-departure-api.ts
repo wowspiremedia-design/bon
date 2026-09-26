@@ -36,6 +36,8 @@ export interface FixedDeparturePackage {
   duration: string
   startingPoint: string
   route: string
+  // Stored in Payload as a string enum ('1'/'2'/'6'), same as Packages.
+  minPax: string
   routeStops: RouteStop[]
   overview: unknown
   itinerary: PayloadItineraryDay[]
@@ -245,6 +247,7 @@ export interface FixedDeparturePackageCardProps {
   route: string
   images: PayloadMedia[]
   faqs: FixedDepartureFaq[]
+  minPax: string
 }
 
 export function mapFixedDeparturePackageToCard(pkg: FixedDeparturePackage): FixedDeparturePackageCardProps {
@@ -263,5 +266,6 @@ export function mapFixedDeparturePackageToCard(pkg: FixedDeparturePackage): Fixe
     route: pkg.route,
     images: pkg.images,
     faqs: pkg.faqs,
+    minPax: pkg.minPax,
   }
 }

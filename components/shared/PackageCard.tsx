@@ -18,6 +18,7 @@ export interface PackageCardProps {
   destination: string
   badgeType: 'bestseller' | 'honeymoon' | 'deal' | 'luxury' | 'budget' | null
   route?: string
+  minPax: string
 }
 
 const BADGE = {
@@ -43,6 +44,7 @@ export default function PackageCard({
   destination,
   badgeType,
   route,
+  minPax,
 }: PackageCardProps) {
   const badge = badgeType ? BADGE[badgeType] : null
   const discountPct = onSale && regularPrice > 0
@@ -239,6 +241,19 @@ export default function PackageCard({
                 style={{ fontSize: '20px', fontWeight: 700, color: '#1E6B2E' }}
               >
                 {fmt(price)}
+                {minPax && (
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 400,
+                      color: '#6B6B6B',
+                      verticalAlign: 'super',
+                      marginLeft: '4px',
+                    }}
+                  >
+                    (Min. {minPax} pax)
+                  </span>
+                )}
               </p>
               <p style={{ fontSize: '12px', color: '#6B6B6B' }}>per person</p>
             </div>

@@ -65,6 +65,8 @@ export interface PayloadPackage {
   route: string
   duration: string
   people: number
+  // Stored in Payload as a string enum ('1'/'2'/'6'), not a number.
+  minPax: string
   mapQuery: string
   shortDescription: unknown
   weatherSummary: string
@@ -462,6 +464,7 @@ export function mapPayloadPackageToCard(pkg: PayloadPackage, destinationOverride
     destination,
     badgeType,
     route: pkg.route,
+    minPax: pkg.minPax,
   }
 }
 

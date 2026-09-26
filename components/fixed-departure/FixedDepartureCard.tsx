@@ -31,6 +31,7 @@ export default function FixedDepartureCard({
   departureDate,
   startingPoint,
   route,
+  minPax,
 }: FixedDeparturePackageCardProps) {
   const image = images[0]?.url ?? ''
   const discountPct = onSale && regularPrice > 0
@@ -219,6 +220,19 @@ export default function FixedDepartureCard({
                 style={{ fontSize: '20px', fontWeight: 700, color: '#1E6B2E' }}
               >
                 {fmt(price)}
+                {minPax && (
+                  <span
+                    style={{
+                      fontSize: '10px',
+                      fontWeight: 400,
+                      color: '#6B6B6B',
+                      verticalAlign: 'super',
+                      marginLeft: '4px',
+                    }}
+                  >
+                    (Min. {minPax} pax)
+                  </span>
+                )}
               </p>
               <p style={{ fontSize: '12px', color: '#6B6B6B' }}>per person</p>
             </div>

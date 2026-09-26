@@ -30,6 +30,7 @@ function mapPayloadPackageToCard(pkg: PayloadPackage): PackageCardProps {
     destination,
     badgeType,
     route: pkg.route,
+    minPax: pkg.minPax,
   }
 }
 
