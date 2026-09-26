@@ -11,6 +11,7 @@ import {
 import type { DepartureState } from '@/lib/payload-api'
 import { slugToState, formatStateLabel } from '@/lib/geoState'
 import AllFixedDepartureClient from '@/components/fixed-departure/AllFixedDepartureClient'
+import PriceConditions from '@/components/shared/PriceConditions'
 import { lexicalToHtml, lexicalToLines } from '@/lib/lexicalToHtml'
 import ItineraryAccordion from '@/components/package/ItineraryAccordion'
 import FAQAccordion from '@/components/package/FAQAccordion'
@@ -449,6 +450,13 @@ async function PackageDetails({ pkg, slug }: { pkg: FixedDeparturePackage; slug:
                 <PolicyList lines={childLines} />
               </Section>
             )}
+
+            {/* New here — this content didn't exist on Fixed Departure
+                pages before; same shared block regular Package pages
+                render. */}
+            <Section title="Important Price & Package Conditions">
+              <PriceConditions />
+            </Section>
 
             {faqs.length > 0 && (
               <Section title="Frequently Asked Questions">
