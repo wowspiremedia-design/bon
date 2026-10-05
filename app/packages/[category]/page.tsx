@@ -36,6 +36,7 @@ function mapPayloadPackageToCard(pkg: PayloadPackage, destinationOverride?: stri
     badgeType,
     route: pkg.route,
     minPax: pkg.minPax,
+    priceUsd: pkg.priceUsd ?? null,
   }
 }
 

@@ -31,6 +31,7 @@ function mapPayloadPackageToCard(pkg: PayloadPackage): PackageCardProps {
     badgeType,
     route: pkg.route,
     minPax: pkg.minPax,
+    priceUsd: pkg.priceUsd ?? null,
   }
 }
 

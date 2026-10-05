@@ -19,6 +19,9 @@ export interface PackageCardProps {
   badgeType: 'bestseller' | 'honeymoon' | 'deal' | 'luxury' | 'budget' | null
   route?: string
   minPax: string
+  // Optional USD amount (Kailash packages). Required in the type, null when
+  // absent, so the compiler flags every place that builds card props.
+  priceUsd: number | null
 }
 
 const BADGE = {
@@ -45,7 +48,10 @@ export default function PackageCard({
   badgeType,
   route,
   minPax,
+  priceUsd,
 }: PackageCardProps) {
+  const usdLabel =
+    typeof priceUsd === 'number' && priceUsd > 0 ? '$' + priceUsd.toLocaleString('en-US') : null
   const badge = badgeType ? BADGE[badgeType] : null
   const discountPct = onSale && regularPrice > 0
     ? Math.round((1 - price / regularPrice) * 100)
@@ -227,7 +233,7 @@ export default function PackageCard({
 
           {/* Price */}
           <div className="flex items-end justify-between gap-2 mb-2">
-            <div>
+            <div className={usdLabel ? 'min-w-0' : undefined}>
               {onSale && (
                 <p
                   className="line-through leading-none mb-[3px]"
@@ -236,11 +242,25 @@ export default function PackageCard({
                   {fmt(regularPrice)}
                 </p>
               )}
+              {/* With a USD amount the line is smaller (17px) so INR + USD fit
+                  together, and it may wrap between the two amounts on very
+                  narrow cards. Without one, the original 20px line is used. */}
               <p
-                className="leading-none mb-[3px]"
-                style={{ fontSize: '20px', fontWeight: 700, color: '#1E6B2E' }}
+                className={usdLabel ? 'mb-[3px]' : 'leading-none mb-[3px]'}
+                style={
+                  usdLabel
+                    ? { fontSize: '17px', fontWeight: 700, color: '#1E6B2E', lineHeight: 1.25 }
+                    : { fontSize: '20px', fontWeight: 700, color: '#1E6B2E' }
+                }
               >
-                {fmt(price)}
+                {usdLabel ? (
+                  <>
+                    <span style={{ whiteSpace: 'nowrap' }}>{fmt(price)}</span>{' '}
+                    <span style={{ whiteSpace: 'nowrap' }}>{'+ ' + usdLabel}</span>
+                  </>
+                ) : (
+                  fmt(price)
+                )}
                 {minPax && (
                   <span
                     style={{
@@ -249,6 +269,9 @@ export default function PackageCard({
                       color: '#6B6B6B',
                       verticalAlign: 'super',
                       marginLeft: '4px',
+                      // Wraps as one unit on narrow cards, only when a USD
+                      // amount is present.
+                      whiteSpace: usdLabel ? 'nowrap' : undefined,
                     }}
                   >
                     (Min. {minPax} pax)
@@ -257,7 +280,14 @@ export default function PackageCard({
               </p>
               <p style={{ fontSize: '12px', color: '#6B6B6B' }}>per person</p>
             </div>
-            <SharePackageButton title={title} slug={slug} />
+            {usdLabel ? (
+              // Keeps the share button at full size beside the wider price.
+              <div style={{ flexShrink: 0 }}>
+                <SharePackageButton title={title} slug={slug} />
+              </div>
+            ) : (
+              <SharePackageButton title={title} slug={slug} />
+            )}
           </div>
 
           {/* Book Now button — full width */}

@@ -25,6 +25,9 @@ interface Props {
   packageTitle: string
   duration?: string
   price: number
+  // Optional USD amount (Kailash packages). Sent to the API only when it is
+  // a positive number.
+  priceUsd?: number
   regularPrice: number
   packageId: number
   imageUrl?: string
@@ -42,6 +45,7 @@ export default function EnquiryPopup({
   packageTitle,
   duration,
   price,
+  priceUsd,
   regularPrice,
   packageId,
   imageUrl,
@@ -109,6 +113,7 @@ export default function EnquiryPopup({
           message,
           packageTitle,
           price,
+          ...(typeof priceUsd === 'number' && priceUsd > 0 ? { priceUsd } : {}),
           regularPrice,
           packageId,
           website,

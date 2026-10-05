@@ -60,6 +60,8 @@ export interface PayloadPackage {
   images: PayloadMedia[]
   brochure: PayloadMedia | null
   price: number
+  // Optional USD amount (set on Kailash packages, payable in Nepal).
+  priceUsd?: number | null
   regularPrice: number
   onSale: boolean
   route: string
@@ -465,6 +467,7 @@ export function mapPayloadPackageToCard(pkg: PayloadPackage, destinationOverride
     badgeType,
     route: pkg.route,
     minPax: pkg.minPax,
+    priceUsd: pkg.priceUsd ?? null,
   }
 }
 

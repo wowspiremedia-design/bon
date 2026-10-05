@@ -92,6 +92,10 @@ export default async function PackagePage({
   const onSale       = pkg.onSale && regularPrice > price
   const discountPct  = onSale ? Math.round((1 - price / regularPrice) * 100) : 0
   const fmt          = (n: number) => '₹' + n.toLocaleString('en-IN')
+  // Optional USD amount (Kailash packages, payable in Nepal). Discount percent
+  // above stays based on the INR figures only.
+  const priceUsd     = typeof pkg.priceUsd === 'number' && pkg.priceUsd > 0 ? pkg.priceUsd : null
+  const usdLabel     = priceUsd !== null ? '$' + priceUsd.toLocaleString('en-US') : null
 
   // ── Hero image ──
   const heroImage = pkg.images[0]?.url ?? ''
@@ -482,6 +486,8 @@ export default async function PackagePage({
               discountPct={discountPct}
               waLink={waLink}
               fmt={fmt}
+              usdLabel={usdLabel}
+              priceUsd={priceUsd}
               packageTitle={pkg.title}
               duration={duration}
               packageId={pkg.id}
@@ -528,24 +534,42 @@ export default async function PackagePage({
           boxShadow: '0 -4px 16px rgba(0,0,0,0.10)',
         }}
       >
-        <div>
+        <div style={usdLabel ? { minWidth: 0 } : undefined}>
           {onSale && (
             <p className="line-through leading-none" style={{ fontSize: '12px', color: '#6B6B6B', marginBottom: '2px' }}>
               {fmt(regularPrice)}
             </p>
           )}
-          <p style={{ fontSize: '20px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1 }}>
-            {fmt(price)}
+          {/* With a USD amount the figures are smaller and may wrap between
+              the two amounts, so they fit beside the two action buttons. */}
+          <p
+            style={
+              usdLabel
+                ? { fontSize: '15px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1.2 }
+                : { fontSize: '20px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1 }
+            }
+          >
+            {usdLabel ? (
+              <>
+                <span style={{ whiteSpace: 'nowrap' }}>{fmt(price)}</span>{' '}
+                <span style={{ whiteSpace: 'nowrap' }}>{'+ ' + usdLabel}</span>
+              </>
+            ) : (
+              fmt(price)
+            )}
           </p>
           <p style={{ fontSize: '11px', color: '#6B6B6B' }}>per person</p>
         </div>
 
+        {/* With a USD amount the buttons are a little narrower so the wider
+            price keeps room beside them instead of sliding under them. */}
         <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
-          <div style={{ width: '130px' }}>
+          <div style={{ width: usdLabel ? '124px' : '130px' }}>
             <EnquiryPopup
               packageTitle={pkg.title}
               duration={duration}
               price={price}
+              priceUsd={priceUsd ?? undefined}
               regularPrice={regularPrice}
               packageId={pkg.id}
               imageUrl={heroImage}
@@ -561,8 +585,8 @@ export default async function PackagePage({
               background: '#25D366',
               color: '#FFFFFF',
               fontWeight: 700,
-              fontSize: '14px',
-              padding: '12px 24px',
+              fontSize: usdLabel ? '13px' : '14px',
+              padding: usdLabel ? '12px 14px' : '12px 24px',
               borderRadius: '10px',
               whiteSpace: 'nowrap',
               flexShrink: 0,
@@ -608,6 +632,8 @@ function BookingSidebar({
   discountPct,
   waLink,
   fmt,
+  usdLabel,
+  priceUsd,
   packageTitle,
   duration,
   packageId,
@@ -620,6 +646,8 @@ function BookingSidebar({
   discountPct: number
   waLink: string
   fmt: (n: number) => string
+  usdLabel: string | null
+  priceUsd: number | null
   packageTitle: string
   duration: string
   packageId: number
@@ -663,8 +691,23 @@ function BookingSidebar({
             </span>
           </div>
         )}
-        <p style={{ fontSize: '32px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1 }}>
-          {fmt(price)}
+        {/* With a USD amount the figure is 24px (down from 32px) so INR + USD
+            fit the sidebar, wrapping between the two amounts if needed. */}
+        <p
+          style={
+            usdLabel
+              ? { fontSize: '24px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1.2 }
+              : { fontSize: '32px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1 }
+          }
+        >
+          {usdLabel ? (
+            <>
+              <span style={{ whiteSpace: 'nowrap' }}>{fmt(price)}</span>{' '}
+              <span style={{ whiteSpace: 'nowrap' }}>{'+ ' + usdLabel}</span>
+            </>
+          ) : (
+            fmt(price)
+          )}
         </p>
         <p style={{ fontSize: '12px', color: '#6B6B6B', marginTop: '4px' }}>per person</p>
       </div>
@@ -694,6 +737,7 @@ function BookingSidebar({
           packageTitle={packageTitle}
           duration={duration}
           price={price}
+          priceUsd={priceUsd ?? undefined}
           regularPrice={regularPrice}
           packageId={packageId}
           imageUrl={heroImage}

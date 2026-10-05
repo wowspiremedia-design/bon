@@ -30,6 +30,15 @@ function isRateLimited(ip: string): boolean {
   return false
 }
 
+// Coerces a request value to a finite number, or null. Used for the numeric
+// package fields so nothing raw from the request body reaches the email HTML.
+function toFiniteNumber(value: unknown): number | null {
+  if (typeof value === 'string' && value.trim() === '') return null
+  if (typeof value !== 'number' && typeof value !== 'string') return null
+  const n = Number(value)
+  return Number.isFinite(n) ? n : null
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -49,7 +58,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const {
-      name, phone, email, message, packageTitle, price, regularPrice, packageId, website,
+      name, phone, email, message, packageTitle, price, priceUsd, regularPrice, packageId, website,
       companyName, eventType, travelDate, destination, travellerCount,
     } = body
 
@@ -123,14 +132,24 @@ export async function POST(request: NextRequest) {
     } else {
       const safePackageTitle = escapeHtml(packageTitle)
 
+      // Numeric fields are coerced and checked as finite before they touch
+      // the HTML. A missing or non-numeric value prints "Not provided".
+      const regularPriceNum = toFiniteNumber(regularPrice)
+      const salePriceNum = toFiniteNumber(price)
+      const packageIdNum = toFiniteNumber(packageId)
+      const priceUsdNum = toFiniteNumber(priceUsd)
+
       subject = `New Package Enquiry: ${packageTitle}`
       html = [
         'Hi Admin,<br><br>',
         `<b>${safeName}</b> wants to know more about:<br><br>`,
         `<b>${safePackageTitle}</b><br><br>`,
-        `Package Price: ₹${regularPrice}<br>`,
-        `Sale Price: ₹${price}<br>`,
-        `Package ID: ${packageId}<br>`,
+        `Package Price: ${regularPriceNum !== null ? `₹${regularPriceNum}` : 'Not provided'}<br>`,
+        `Sale Price: ${salePriceNum !== null ? `₹${salePriceNum}` : 'Not provided'}<br>`,
+        ...(priceUsdNum !== null && priceUsdNum > 0
+          ? [`Amount payable in Nepal: $${priceUsdNum.toLocaleString('en-US')}<br>`]
+          : []),
+        `Package ID: ${packageIdNum !== null ? packageIdNum : 'Not provided'}<br>`,
         '<hr><br>',
         'Contact Details<br><br>',
         `Name: ${safeName}<br>`,
