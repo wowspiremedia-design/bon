@@ -1,9 +1,15 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
+
 const WA_LINK =
   "https://wa.me/919836755550?text=I'm%20interested%20to%20plan%20a%20trip%20with%20Bon%20Voyagers.%20Please%20assist%20me."
 
 export default function WhatsAppFloat() {
+  // /cars is a full-screen map with a bottom sheet, which this button would sit on
+  // top of at phone widths. Hidden there only (768px and below; Tailwind max-[769px] means width under 769px),
+  // every other page and width unchanged.
+  const hideOnCabPhone = usePathname() === '/cars'
   return (
     // bottom-24 (96px) on mobile clears the fixed mobile sticky price/CTA
     // bar present on pages like the hotel and package detail pages, the
@@ -13,7 +19,7 @@ export default function WhatsAppFloat() {
     // with a higher z-index on hotel pages, so only one button is ever
     // visible instead of exposing this one underneath at a different spot.
     <div
-      className="fixed z-50 bottom-24 right-7 lg:bottom-7 lg:right-7"
+      className={`fixed z-50 bottom-24 right-7 lg:bottom-7 lg:right-7${hideOnCabPhone ? ' max-[769px]:hidden' : ''}`}
     >
       {/* Pulsing ring */}
       <span
