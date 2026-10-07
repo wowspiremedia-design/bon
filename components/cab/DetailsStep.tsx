@@ -11,9 +11,9 @@ interface Props {
   phone: string
   email: string
   notes: string
-  website: string
+  trap: string
   onField: (field: DetailField, value: string) => void
-  onWebsite: (value: string) => void
+  onTrap: (value: string) => void
   summary: TripSummary
   onEdit: (target: EditTarget) => void
   // Called only when every field is valid.
@@ -51,7 +51,7 @@ const control = (invalid: boolean): React.CSSProperties => ({
   borderColor: invalid ? '#D90429' : '#E0EBE1',
 })
 
-export default function DetailsStep({ name, phone, email, notes, website, onField, onWebsite, summary, onEdit, onSubmit, sending }: Props) {
+export default function DetailsStep({ name, phone, email, notes, trap, onField, onTrap, summary, onEdit, onSubmit, sending }: Props) {
   const [touched, setTouched] = useState<Partial<Record<DetailField, boolean>>>({})
   const [attempts, setAttempts] = useState(0)
   const summaryRef = useRef<HTMLDivElement>(null)
@@ -103,9 +103,11 @@ export default function DetailsStep({ name, phone, email, notes, website, onFiel
 
   return (
     <form onSubmit={handleSubmit} noValidate>
-      {/* Honeypot: real people never see or reach it, so a filled value means a bot. Off-screen, not display none. */}
-      <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
-        <input type="text" name="website" value={website} onChange={(e) => onWebsite(e.target.value)} tabIndex={-1} autoComplete="off" />
+      {/* Spam trap. display none keeps it out of the accessibility tree and the tab order, and browser
+          autofill skips hidden fields. The name is deliberately not a common autofill target such as
+          "website" or "url", so a real customer can never fill it by accident. */}
+      <div aria-hidden="true" style={{ display: 'none' }}>
+        <input id="bv_trap" type="text" name="bv_trap" value={trap} onChange={(e) => onTrap(e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden="true" />
       </div>
 
       {/* Announced politely when a submit fails. */}

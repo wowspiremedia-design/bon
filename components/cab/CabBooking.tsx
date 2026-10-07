@@ -107,7 +107,7 @@ export default function CabBooking({ locations, vehicles }: Props) {
   const [phone, setPhone] = useState('')
   const [email, setEmail] = useState('')
   const [notes, setNotes] = useState('')
-  const [website, setWebsite] = useState('') // honeypot
+  const [trap, setTrap] = useState('') // spam trap, always empty for people
   const [phase, setPhase] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
   const [reference, setReference] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState('')
@@ -344,7 +344,7 @@ export default function CabBooking({ locations, vehicles }: Props) {
         phone,
         email,
         notes,
-        website,
+        trap,
         tripType,
         days,
         pickupAt,
@@ -395,7 +395,7 @@ export default function CabBooking({ locations, vehicles }: Props) {
     setPhone('')
     setEmail('')
     setNotes('')
-    setWebsite('')
+    setTrap('')
     setReference(null)
     setSubmitError('')
     setSubmittedAt(null)
@@ -653,9 +653,9 @@ export default function CabBooking({ locations, vehicles }: Props) {
                     phone={phone}
                     email={email}
                     notes={notes}
-                    website={website}
+                    trap={trap}
                     onField={setDetail}
-                    onWebsite={setWebsite}
+                    onTrap={setTrap}
                     summary={summary}
                     onEdit={goEdit}
                     onSubmit={handleBook}

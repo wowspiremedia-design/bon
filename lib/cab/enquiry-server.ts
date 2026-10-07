@@ -559,16 +559,26 @@ export interface HandlerResult {
   json: { success: boolean; reference?: string; error?: string }
 }
 
+export const TRAP_MESSAGE = 'We could not verify this request. Please message us on WhatsApp.'
+
+// A trap field counts as filled for any non-empty string, or any other value that is not null or undefined.
+function isFilled(value: unknown): boolean {
+  if (value === undefined || value === null) return false
+  return typeof value === 'string' ? value.trim() !== '' : true
+}
+
 export const GENERIC_FAILURE = 'We could not send your request. Please try again, or message us on WhatsApp.'
 
 // Honeypot, validation, save, email and the outcome rule. Returns what the route should answer.
 export async function handleCabEnquiry(body: unknown, ip: string, deps: Deps): Promise<HandlerResult> {
   const now = deps.now()
 
-  // A filled honeypot gets the success shape and nothing else happens.
-  if (isObject(body) && typeof body.website === 'string' && body.website.trim() !== '') {
+  // A filled trap field (bv_trap, or the old name website) means a bot or a bad autofill. Nothing is
+  // saved or sent, and the answer is an error, never a success: a real customer who somehow
+  // trips it must see that the request did not go through and can use the WhatsApp fallback.
+  if (isObject(body) && (isFilled(body.bv_trap) || isFilled(body.website))) {
     deps.log(`[cab-enquiry] honeypot ip=${ip}`)
-    return { status: 200, json: { success: true, reference: generateReference(now) } }
+    return { status: 400, json: { success: false, error: TRAP_MESSAGE } }
   }
 
   const checked = validateCabEnquiry(body, now)

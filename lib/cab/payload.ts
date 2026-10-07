@@ -29,8 +29,8 @@ export interface CabRequestPayload {
   distanceKm?: number
   durationMinutes?: number
   pageUrl: string
-  // Honeypot. Always sent; the server rejects the request when it is filled.
-  website: string
+  // Spam trap. Always sent, empty for people. The server refuses the request when it is filled.
+  bv_trap: string
 }
 
 // Structural copy of the picker's waypoint, so this file needs no component imports.
@@ -44,7 +44,7 @@ export interface CabBookingState {
   phone: string
   email: string
   notes: string
-  website: string
+  trap: string
   tripType: 'oneway' | 'round'
   days: number
   // "now", or an IST ISO string
@@ -125,7 +125,7 @@ export function buildCabPayload(s: CabBookingState): CabRequestPayload {
     luggage: s.luggage,
     preferredVehicle: s.vehicleName ?? 'No preference',
     pageUrl: s.pageUrl.slice(0, PAGE_URL_MAX),
-    website: s.website,
+    bv_trap: s.trap,
   }
   if (s.tripType === 'round') payload.days = s.days
   if (s.email.trim() !== '') payload.email = s.email.trim()
