@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getFilteredPayloadHotels } from '@/lib/payload-hotels-api'
+import { getFilteredPayloadHotels, isStarRating } from '@/lib/payload-hotels-api'
 import { getClientIp, isRateLimited } from '@/lib/apiRateLimit'
 
 const MAX_LIST_VALUES = 50
@@ -20,7 +20,9 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url)
   const location = searchParams.get('location') ?? undefined
-  const propertyCategory = searchParams.get('propertyCategory') ?? undefined
+  // Exactly '1' to '5', anything else is ignored.
+  const starRatingRaw = searchParams.get('starRating')
+  const starRating = isStarRating(starRatingRaw) ? starRatingRaw : undefined
   const propertyType = searchParams.get('propertyType') ?? undefined
   const amenities = parseList(searchParams.get('amenities'))
   const foodType = parseList(searchParams.get('foodType'))
@@ -38,7 +40,7 @@ export async function GET(request: NextRequest) {
   try {
     const result = await getFilteredPayloadHotels({
       location,
-      propertyCategory,
+      starRating,
       propertyType,
       amenities,
       foodType,

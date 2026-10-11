@@ -119,6 +119,7 @@ export default function CheckAvailabilityButton({ hotelName }: Props) {
       `Hi, I'm interested in *${hotelName}*.`,
       `Check-in: ${checkIn || 'Not specified'}`,
       `Check-out: ${checkOut || 'Not specified'}`,
+      `Rooms: ${rooms}`,
       `Guests: ${adults} Adult(s), ${kids} Kid(s), ${infants} Infant(s)`,
       `Name: ${name}`,
       `WhatsApp: ${whatsapp}`,

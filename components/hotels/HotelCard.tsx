@@ -1,13 +1,13 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import type { MappedHotel as Hotel } from '@/lib/payload-hotels-api'
+import { formatPrice, formatStarRating, type MappedHotel as Hotel } from '@/lib/payload-hotels-api'
 import { AmenityIcon } from './AmenityIcon'
 import ShareHotelButton from '@/components/hotels/ShareHotelButton'
 
-const fmt = (n: number) => '₹' + n.toLocaleString('en-IN')
-
 export default function HotelCard({ hotel }: { hotel: Hotel }) {
   const title = hotel.title
+  // "₹2,700", or null when no room has a real price. Null prints nothing.
+  const startingPriceText = formatPrice(hotel.startingPrice)
   const visibleAmenities = hotel.amenities.slice(0, 3)
 
   return (
@@ -35,7 +35,7 @@ export default function HotelCard({ hotel }: { hotel: Hotel }) {
           <div style={{ width: '100%', height: '100%', background: '#E8F5E9' }} />
         )}
 
-        {hotel.propertyCategory && (
+        {hotel.starRating && (
           <span
             className="absolute top-3 left-3 rounded-[6px] z-10"
             style={{
@@ -46,7 +46,7 @@ export default function HotelCard({ hotel }: { hotel: Hotel }) {
               padding: '4px 10px',
             }}
           >
-            {hotel.propertyCategory}
+            {formatStarRating(hotel.starRating)}
           </span>
         )}
       </div>
@@ -83,9 +83,9 @@ export default function HotelCard({ hotel }: { hotel: Hotel }) {
           </div>
         )}
 
-        {hotel.startingPrice !== null && (
+        {startingPriceText !== null && (
           <p style={{ fontSize: '13px', color: '#888888' }}>
-            Starting from <span style={{ fontSize: '17px', fontWeight: 700, color: '#1E6B2E' }}>{fmt(hotel.startingPrice)}</span>
+            Starting from <span style={{ fontSize: '17px', fontWeight: 700, color: '#1E6B2E' }}>{startingPriceText}</span>
           </p>
         )}
       </div>

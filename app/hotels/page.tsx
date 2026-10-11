@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 // Real known enum values from the Hotels collection schema (Payload has no
 // taxonomy lookup for these, they are plain snake_case strings on the doc).
-const PROPERTY_CATEGORIES = ['economy', 'elite', 'heritage', 'luxury', 'premium']
+const STAR_RATINGS = ['1', '2', '3', '4', '5']
 const PROPERTY_TYPES = ['hotel', 'homestay', 'resort', 'bungalow', 'tented_camp']
 const AMENITIES = [
   'wifi', 'ac', 'room_heater', 'geyser_hot_water', 'television', 'balcony',
@@ -44,7 +44,7 @@ export default async function AllHotelsPage() {
 
   const taxonomyOptions: TaxonomyOptions = {
     hotel_locations: locations,
-    hotel_property_category: formatOptions(PROPERTY_CATEGORIES),
+    hotel_star_rating: STAR_RATINGS.map((value) => ({ value, label: `${value} Star Hotel` })),
     hotel_property_type: formatOptions(PROPERTY_TYPES),
     hotel_amenities: formatAmenityOptions(AMENITIES),
     hotel_food_type: formatAmenityOptions(FOOD_TYPES),

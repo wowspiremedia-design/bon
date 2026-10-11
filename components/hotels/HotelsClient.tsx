@@ -28,7 +28,7 @@ const WAITING_MESSAGES = [
 
 export interface TaxonomyOptions {
   hotel_locations: string[]
-  hotel_property_category: string[]
+  hotel_star_rating: Array<{ value: string; label: string }>
   hotel_property_type: string[]
   hotel_amenities: string[]
   hotel_food_type: string[]
@@ -65,14 +65,14 @@ export default function HotelsClient({
   initialHasMore,
   initialTotalCount,
 }: Props) {
-  const [location, setLocation]                 = useState('')
-  const [propertyCategory, setPropertyCategory] = useState('')
-  const [propertyType, setPropertyType]         = useState('')
-  const [amenities, setAmenities]               = useState<string[]>([])
-  const [foodType, setFoodType]                 = useState<string[]>([])
-  const [viewType, setViewType]                 = useState<string[]>([])
-  const [compatibility, setCompatibility]       = useState<string[]>([])
-  const [selectedPrice, setSelectedPrice]       = useState<string | null>(null)
+  const [location, setLocation]           = useState('')
+  const [starRating, setStarRating]       = useState('')
+  const [propertyType, setPropertyType]   = useState('')
+  const [amenities, setAmenities]         = useState<string[]>([])
+  const [foodType, setFoodType]           = useState<string[]>([])
+  const [viewType, setViewType]           = useState<string[]>([])
+  const [compatibility, setCompatibility] = useState<string[]>([])
+  const [selectedPrice, setSelectedPrice] = useState<string | null>(null)
 
   const [loadedHotels, setLoadedHotels] = useState<Hotel[]>(initialHotels)
   const [totalCount, setTotalCount]     = useState<number>(initialTotalCount)
@@ -104,7 +104,7 @@ export default function HotelsClient({
   const fetchHotelsBatch = useCallback(async (cursor: number): Promise<BatchResult> => {
     const qs = new URLSearchParams()
     if (location) qs.set('location', location)
-    if (propertyCategory) qs.set('propertyCategory', propertyCategory)
+    if (starRating) qs.set('starRating', starRating)
     if (propertyType) qs.set('propertyType', propertyType)
     if (amenities.length > 0) qs.set('amenities', amenities.join(','))
     if (foodType.length > 0) qs.set('foodType', foodType.join(','))
@@ -125,7 +125,7 @@ export default function HotelsClient({
       hasMore: Boolean(data.hasMore),
       totalCount: typeof data.totalCount === 'number' ? data.totalCount : 0,
     }
-  }, [location, propertyCategory, propertyType, amenities, foodType, viewType, compatibility, selectedPrice])
+  }, [location, starRating, propertyType, amenities, foodType, viewType, compatibility, selectedPrice])
 
   const fetchHotelsBatchRef = useRef(fetchHotelsBatch)
   useEffect(() => { fetchHotelsBatchRef.current = fetchHotelsBatch }, [fetchHotelsBatch])
@@ -248,7 +248,7 @@ export default function HotelsClient({
       setHasMore(false)
       setFilterLoading(false)
     })
-  }, [location, propertyCategory, propertyType, amenities, foodType, viewType, compatibility, selectedPrice, startStaging])
+  }, [location, starRating, propertyType, amenities, foodType, viewType, compatibility, selectedPrice, startStaging])
 
   // Back-to-top visibility
   useEffect(() => {
@@ -271,7 +271,7 @@ export default function HotelsClient({
 
   function clearAll() {
     setLocation('')
-    setPropertyCategory('')
+    setStarRating('')
     setPropertyType('')
     setAmenities([])
     setFoodType([])
@@ -281,13 +281,16 @@ export default function HotelsClient({
   }
 
   const activeFilterCount =
-    (location ? 1 : 0) + (propertyCategory ? 1 : 0) + (propertyType ? 1 : 0) +
+    (location ? 1 : 0) + (starRating ? 1 : 0) + (propertyType ? 1 : 0) +
     amenities.length + foodType.length + viewType.length + compatibility.length + (selectedPrice ? 1 : 0)
   const filtersActive = activeFilterCount > 0
 
+  const starRatingLabel =
+    taxonomyOptions.hotel_star_rating.find((o) => o.value === starRating)?.label ?? `${starRating} Star Hotel`
+
   const pills: { key: string; label: string; onRemove: () => void }[] = [
     ...(location ? [{ key: 'location', label: location, onRemove: () => setLocation('') }] : []),
-    ...(propertyCategory ? [{ key: 'category', label: propertyCategory, onRemove: () => setPropertyCategory('') }] : []),
+    ...(starRating ? [{ key: 'star', label: starRatingLabel, onRemove: () => setStarRating('') }] : []),
     ...(propertyType ? [{ key: 'type', label: propertyType, onRemove: () => setPropertyType('') }] : []),
     ...amenities.map((a) => ({ key: `amenity-${a}`, label: a, onRemove: () => toggleInList(setAmenities, a) })),
     ...foodType.map((f) => ({ key: `food-${f}`, label: f, onRemove: () => toggleInList(setFoodType, f) })),
@@ -306,7 +309,7 @@ export default function HotelsClient({
   const filterPanelProps: FilterPanelProps = {
     taxonomyOptions,
     location, setLocation,
-    propertyCategory, setPropertyCategory,
+    starRating, setStarRating,
     propertyType, setPropertyType,
     amenities, foodType, viewType, compatibility,
     onToggleAmenity: (v: string) => toggleInList(setAmenities, v),
@@ -608,8 +611,8 @@ interface FilterPanelProps {
   taxonomyOptions: TaxonomyOptions
   location: string
   setLocation: (v: string) => void
-  propertyCategory: string
-  setPropertyCategory: (v: string) => void
+  starRating: string
+  setStarRating: (v: string) => void
   propertyType: string
   setPropertyType: (v: string) => void
   amenities: string[]
@@ -645,7 +648,7 @@ const selectStyle = {
 function FilterPanel({
   taxonomyOptions,
   location, setLocation,
-  propertyCategory, setPropertyCategory,
+  starRating, setStarRating,
   propertyType, setPropertyType,
   amenities, foodType, viewType, compatibility,
   onToggleAmenity, onToggleFoodType, onToggleViewType, onToggleCompatibility,
@@ -678,7 +681,7 @@ function FilterPanel({
         </h3>
       )}
 
-      {/* Location, Property Category, Property Type dropdowns */}
+      {/* Location, Star Rating, Property Type dropdowns */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px' }}>
         <div>
           <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '6px' }}>Location</p>
@@ -690,11 +693,11 @@ function FilterPanel({
           </select>
         </div>
         <div>
-          <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '6px' }}>Property Category</p>
-          <select value={propertyCategory} onChange={(e) => setPropertyCategory(e.target.value)} style={selectStyle}>
-            <option value="">All Categories</option>
-            {taxonomyOptions.hotel_property_category.map((name) => (
-              <option key={name} value={name}>{name}</option>
+          <p style={{ fontSize: '13px', fontWeight: 600, color: '#4A4A4A', marginBottom: '6px' }}>Star Rating</p>
+          <select value={starRating} onChange={(e) => setStarRating(e.target.value)} style={selectStyle}>
+            <option value="">All Ratings</option>
+            {taxonomyOptions.hotel_star_rating.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
         </div>

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getPayloadHotelBySlug } from '@/lib/payload-hotels-api'
+import { formatPrice, formatStarRating, getPayloadHotelBySlug } from '@/lib/payload-hotels-api'
 import HotelGallery from '@/components/hotels/HotelGallery'
 import CheckAvailabilityButton from '@/components/hotels/CheckAvailabilityButton'
 import HotelWhatsAppFloat from '@/components/hotels/HotelWhatsAppFloat'
@@ -9,7 +9,6 @@ import SectionScrollSpy, { type ScrollSpySection } from '@/components/shared/Sec
 import { SECTION_NAV_SCROLL_OFFSET } from '@/components/shared/sectionScrollSpyConfig'
 import { AmenityIcon } from '@/components/hotels/AmenityIcon'
 
-const fmt = (n: number) => '₹' + n.toLocaleString('en-IN')
 const SITE_URL = 'https://bonvoyagers.co'
 
 // Rank Math does not expose rank_math_title, rank_math_description or
@@ -23,7 +22,9 @@ function truncateAtWordBoundary(text: string, maxLength: number): string {
   return (lastSpace > 0 ? truncated.slice(0, lastSpace) : truncated).trim()
 }
 
-function formatTime(time: string): string {
+// Returns '' for a missing time, so callers can leave the line out.
+function formatTime(time: string | null | undefined): string {
+  if (!time || !time.trim()) return ''
   const match = time.match(/^(\d{1,2}):(\d{2})/)
   if (!match) return time
   let hours = parseInt(match[1], 10)
@@ -32,6 +33,19 @@ function formatTime(time: string): string {
   hours = hours % 12
   if (hours === 0) hours = 12
   return `${hours}:${minutes} ${period}`
+}
+
+// No hotel is built ahead of time, so there is no Payload call at build. Declaring
+// this makes Next.js render each hotel page on its first visit and then cache it,
+// refreshing at most once a minute (the 60 second revalidate on the Payload fetches).
+// Without it every request was rendered fresh and sent no-store.
+//
+// getPayloadHotelBySlug returns null only for a real "no such hotel" (404, cached
+// like any page). If Payload cannot be reached it throws, so generateMetadata and
+// the page below both let the error through: the visitor gets an error page, and
+// Next.js does not cache an error. A page that was already cached keeps being served.
+export async function generateStaticParams() {
+  return []
 }
 
 export async function generateMetadata({
@@ -43,8 +57,11 @@ export async function generateMetadata({
   const hotel = await getPayloadHotelBySlug(slug)
   if (!hotel) return {}
   const title = hotel.title
-  const metaTitle = hotel.location ? `${title} | ${hotel.location} | Bon Voyagers` : `${title} | Bon Voyagers`
-  const metaDescription = hotel.overview ? truncateAtWordBoundary(hotel.overview, 155) : undefined
+  // An SEO title or description written in Payload wins. Otherwise the derived
+  // title and the overview-based description are used, as before.
+  const derivedTitle = hotel.location ? `${title} | ${hotel.location} | Bon Voyagers` : `${title} | Bon Voyagers`
+  const metaTitle = hotel.seoTitle || derivedTitle
+  const metaDescription = hotel.seoDescription || (hotel.overview ? truncateAtWordBoundary(hotel.overview, 155) : undefined)
   return {
     title: metaTitle,
     ...(metaDescription ? { description: metaDescription } : {}),
@@ -70,6 +87,12 @@ export default async function HotelPage({
   if (!hotel) notFound()
 
   const title = hotel.title
+  // "₹2,700", or null when no room has a real price. Null prints nothing anywhere below.
+  const startingPriceText = formatPrice(hotel.startingPrice)
+  const checkinText = formatTime(hotel.checkinTime)
+  const checkoutText = formatTime(hotel.checkoutTime)
+  // The map searches for the hotel by name and address, or by location when there is no address.
+  const mapQuery = [title, hotel.address || hotel.location].filter(Boolean).join(', ')
 
   const hasAmenitiesSection = hotel.amenities.length > 0 || hotel.foodType.length > 0
   const hasRoomsSection = hotel.roomPricing.length > 0
@@ -110,7 +133,7 @@ export default async function HotelPage({
         image: hotel.image ? [hotel.image] : undefined,
         url: hotelUrl,
         address: hotel.address || hotel.location || undefined,
-        ...(hotel.startingPrice !== null ? { priceRange: `₹${hotel.startingPrice}+` } : {}),
+        ...(startingPriceText !== null ? { priceRange: `₹${hotel.startingPrice}+` } : {}),
       },
     ],
   }
@@ -170,7 +193,7 @@ export default async function HotelPage({
               </h1>
 
               <div className="flex flex-wrap gap-2" style={{ marginBottom: '14px' }}>
-                {hotel.propertyCategory && <Badge label={hotel.propertyCategory} />}
+                {hotel.starRating && <Badge label={formatStarRating(hotel.starRating)} />}
                 {hotel.propertyType && <Badge label={hotel.propertyType} />}
                 {hotel.viewType.map((view) => (
                   <Badge key={view} label={view} icon={<AmenityIcon name={view} size={12} />} />
@@ -257,8 +280,8 @@ export default async function HotelPage({
                   <RuleRow label="Couple Friendly" value={coupleFriendly ? 'Yes' : 'No'} />
                   <RuleRow label="Local ID Friendly" value={localIdFriendly ? 'Yes' : 'No'} />
                   <RuleRow label="Pets Allowed" value={petsAllowed ? 'Yes' : 'No'} />
-                  <RuleRow label="Check-in Time" value={formatTime(hotel.checkinTime)} />
-                  <RuleRow label="Check-out Time" value={formatTime(hotel.checkoutTime)} />
+                  {checkinText && <RuleRow label="Check-in Time" value={checkinText} />}
+                  {checkoutText && <RuleRow label="Check-out Time" value={checkoutText} />}
                 </div>
               </Section>
             )}
@@ -275,7 +298,7 @@ export default async function HotelPage({
                 </div>
                 <div style={{ borderRadius: '12px', overflow: 'hidden', border: '1px solid #E0EBE1' }}>
                   <iframe
-                    src={`https://maps.google.com/maps?q=${encodeURIComponent(hotel.location)}&output=embed&z=8`}
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(mapQuery)}&output=embed&z=8`}
                     width="100%"
                     height="360"
                     style={{ border: 0, display: 'block' }}
@@ -308,12 +331,12 @@ export default async function HotelPage({
                 boxShadow: '0 4px 24px rgba(0,0,0,0.08)',
               }}
             >
-              {hotel.startingPrice !== null && (
+              {startingPriceText !== null && (
                 <div style={{ marginBottom: '20px' }}>
                   <p style={{ fontSize: '12px', color: '#888888', marginBottom: '4px' }}>Starting from</p>
                   <div className="flex items-baseline gap-2">
                     <p style={{ fontSize: '30px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1 }}>
-                      {fmt(hotel.startingPrice)}
+                      {startingPriceText}
                     </p>
                     <span style={{ fontSize: '13px', fontWeight: 600, color: '#888888' }}>+ taxes</span>
                   </div>
@@ -337,11 +360,11 @@ export default async function HotelPage({
           boxShadow: '0 -4px 16px rgba(0,0,0,0.10)',
         }}
       >
-        {hotel.startingPrice !== null ? (
+        {startingPriceText !== null ? (
           <div>
             <div className="flex items-baseline gap-1">
               <p style={{ fontSize: '18px', fontWeight: 800, color: '#1E6B2E', lineHeight: 1 }}>
-                {fmt(hotel.startingPrice)}
+                {startingPriceText}
               </p>
               <span style={{ fontSize: '11px', fontWeight: 600, color: '#888888' }}>+ taxes</span>
             </div>

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { getDestinations, getCategories, getActiveCollections, getAllPackageSlugs } from '@/lib/payload-api'
-import { getAllMappedPayloadHotels } from '@/lib/payload-hotels-api'
+import { getAllHotelSitemapEntries } from '@/lib/payload-hotels-api'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bonvoyagers.co'
 
@@ -38,8 +38,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   try {
-    const hotels = await getAllMappedPayloadHotels()
-    entries.push(...hotels.map((hotel) => ({ url: `${SITE_URL}/hotel/${hotel.slug}` })))
+    // Every hotel, all pages, with its last update time.
+    const hotels = await getAllHotelSitemapEntries()
+    entries.push(
+      ...hotels.map((hotel) => {
+        const modified = hotel.updatedAt ? new Date(hotel.updatedAt) : null
+        return {
+          url: `${SITE_URL}/hotel/${hotel.slug}`,
+          ...(modified && !Number.isNaN(modified.getTime()) ? { lastModified: modified } : {}),
+        }
+      }),
+    )
   } catch (err) {
     console.warn('sitemap: failed to fetch hotels', err)
   }
