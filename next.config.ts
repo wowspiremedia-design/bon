@@ -65,6 +65,16 @@ const nextConfig: NextConfig = {
         destination: '/hotel/hotel-krishna-palace-gangtok',
         permanent: true,
       },
+      {
+        source: '/hotel/royal-tara',
+        destination: '/hotel/hotel-royal-tara-gangtok',
+        permanent: true,
+      },
+      {
+        source: '/hotel/the-star-continental-spa',
+        destination: '/hotel/the-star-continental-spa-gangtok',
+        permanent: true,
+      },
     ]
   },
   async headers() {
